@@ -1,17 +1,14 @@
 # Venezuela Sismo — Feed de noticias verificadas
 
-Feed en tiempo real de noticias verificadas sobre el doblete sísmico del 24 de junio de 2026 en Venezuela.  
-Stack: **Next.js 14 · Supabase · Tailwind · Claude API (fact-checking)**
+Feed en tiempo real de noticias verificadas sobre el doblete sísmico del 24 de junio de 2026 en Venezuela.
 
 ---
 
 ## El evento
 
-Dos sismos ocurrieron con apenas 40 segundos de diferencia:
-- **M7.2** y **M7.5** con epicentro cerca de Morón / San Felipe (Yaracuy/Carabobo)
-- Zonas más afectadas: La Guaira, Caracas, Carabobo, Miranda, Trujillo
-- ~920 muertos · ~3,360 heridos · +50,000 desaparecidos
-- Estado de emergencia declarado por el gobierno venezolano
+El 24 de junio de 2026 ocurrieron dos sismos con apenas 40 segundos de diferencia: magnitud 7.2 y 7.5, con epicentro cerca de Morón y San Felipe (Yaracuy/Carabobo). Las zonas más afectadas fueron La Guaira, Caracas, Carabobo, Miranda y Trujillo. Cifras actuales: ~920 muertos, ~3.360 heridos, más de 50.000 desaparecidos. El gobierno venezolano declaró estado de emergencia.
+
+Este proyecto existe para agregar en un solo lugar las noticias verificadas sobre el evento, filtrando desinformación y ruido automaticamente.
 
 ---
 
@@ -21,88 +18,63 @@ Dos sismos ocurrieron con apenas 40 segundos de diferencia:
 RSS / USGS GeoJSON / Nitter
            │
            ▼
-  [Pre-filtro keywords]   ← gratis, instantáneo
+  [Pre-filtro keywords]   ← sin costo, sin latencia
            │ pasa
            ▼
-  [Claude fact-checker]   ← verifica relevancia + asigna tag + score 0-100
+  [Groq fact-checker]     ← llama-3.3-70b verifica relevancia, asigna tag, da confianza 0-100
            │ aprobado
            ▼
-  [Supabase (noticias)]   ← RLS: solo aprobadas son públicas
+  [Supabase]              ← todas las noticias se guardan; RLS expone solo las aprobadas
            │
            ▼
-  [Supabase Realtime]     ← WebSocket push al cliente
+  [Supabase Realtime]     ← push por WebSocket al browser cuando llega algo nuevo
            │
            ▼
-  [Feed en el browser]    ← se actualiza solo
+  [Feed]                  ← se actualiza solo, sin recargar
 ```
 
-Cada noticia pasa por dos filtros:
-1. **Pre-filtro de keywords** — descarta lo obvio gratis (sin gastar tokens)
-2. **Claude API (claude-sonnet-4-6)** — verifica relevancia al sismo de Venezuela, asigna tag y da score de confianza 0-100
-
-Cada noticia tiene tres estados posibles: `aprobado`, `rechazado`, o `dudoso`. Solo las `aprobado` aparecen en el feed público (RLS de Supabase lo garantiza). Las rechazadas y dudosas se guardan igual para auditoría.
-
-USGS se maneja aparte: consume GeoJSON en lugar de RSS y sus entradas son auto-aprobadas (fuente oficial, confianza 99).
-
-El cron corre en Vercel cada 5 minutos. La respuesta del endpoint `/api/ingest` incluye:
-```json
-{ "ok": true, "procesadas": N, "aprobadas": N, "rechazadas": N, "duplicadas": N, "timestamp": "..." }
-```
+Un cron en Vercel dispara el pipeline cada 5 minutos.
 
 ---
 
-## Deploy en Vercel
+## Los dos filtros
 
-```bash
-npm i -g vercel
-vercel --prod
-```
+**Pre-filtro de keywords.** Antes de llamar a cualquier API, cada noticia pasa por una lista de palabras clave: nombres de estados venezolanos, términos sísmicos, palabras de rescate. Si ninguna aparece en el titular ni en la descripción, la noticia se descarta en el momento. Elimina entre el 70% y el 80% del volumen entrante sin gastar un solo token.
 
-Agregar en Vercel → Settings → Environment Variables:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `ANTHROPIC_API_KEY`
-- `CRON_SECRET`
+**Groq fact-checker.** Las noticias que pasan el pre-filtro se envían a `llama-3.3-70b-versatile` con un system prompt que describe el evento en detalle: fechas, magnitudes, epicentro, cifras conocidas. El modelo devuelve un JSON con tres campos: `status` (aprobado / rechazado / dudoso), `tag` (categoría de la noticia) y `confianza` (0–100). Solo las noticias con `status = aprobado` llegan al feed público. Las rechazadas y dudosas se guardan en la base de datos para auditoría, pero Row Level Security de Supabase impide que el cliente las vea.
 
-El `vercel.json` ya configura el cron para correr `/api/ingest` cada 5 minutos.
+El USGS es la excepción: sus datos sísmicos se auto-aprueban con confianza 99 sin pasar por el modelo, porque son fuente oficial.
 
 ---
 
-## Tags del feed
+## Tags
 
 | Tag | Qué cubre |
 |-----|-----------|
-| `sismo` | Datos técnicos, magnitud, epicentro |
-| `rescate` | Equipos de búsqueda y rescate, supervivientes |
+| `sismo` | Datos técnicos: magnitud, epicentro, profundidad, hora |
+| `rescate` | Labores de búsqueda y rescate, equipos, supervivientes |
 | `desaparecidos` | Personas buscadas, plataformas de localización |
-| `puntos_acopio` | Centros de donación en especie |
+| `puntos_acopio` | Centros de donación en especie, dónde llevar ayuda |
 | `ayuda_humanitaria` | ONG, refugios, distribución de ayuda |
-| `replicas` | Aftershocks, sismos posteriores |
-| `donaciones` | Cómo donar dinero, canales de donación |
-| `internacional` | Respuesta de otros países, diplomacia |
+| `replicas` | Aftershocks y sismos posteriores al doblete principal |
+| `donaciones` | Cómo donar dinero, canales verificados |
+| `internacional` | Respuesta de otros países, ayuda exterior, diplomacia |
 
 ---
 
 ## Fuentes
 
-**Alta confiabilidad (procesadas con mayor tolerancia):**
+**Alta confiabilidad** — aprobadas con menor scrutiny del modelo:
+
 - Reuters América Latina
 - AP News
 - BBC Mundo
 - CNN en Español
 - Univisión Noticias
 - El Tiempo (Colombia)
-- USGS (datos sísmicos oficiales — auto-aprobadas, sin fact-check)
+- USGS Earthquake Hazards Program (auto-aprobado, sin fact-check)
 
-**Confiabilidad media (mayor scrutiny de Claude):**
+**Confiabilidad media** — el modelo aplica criterios más estrictos antes de aprobar:
+
 - X #TerremotoVenezuela (via Nitter RSS)
 - X #SismoVenezuela (via Nitter RSS)
-
----
-
-## Costos estimados (Claude API)
-
-~9 fuentes × hasta 20 items × cada 5 min = ~2,000 llamadas/hora máximo.  
-El pre-filtro de keywords elimina ~70-80% antes de llegar a Claude.  
-Costo estimado: **< $2 USD/día** con `claude-sonnet-4-6` a precios actuales.

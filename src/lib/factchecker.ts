@@ -1,6 +1,7 @@
 // src/lib/factchecker.ts
-// Usa Claude para verificar si una noticia es relevante al sismo de Venezuela
+// Usa Groq (llama-3.3-70b) para verificar si una noticia es relevante al sismo de Venezuela
 // y asignarle un tag. Solo pasan noticias aprobadas al feed.
+// Groq es compatible con el formato OpenAI — gratis en https://console.groq.com
 
 export type FactCheckResult = {
   status: 'aprobado' | 'rechazado' | 'dudoso'
@@ -61,19 +62,18 @@ export async function verificarNoticia(
     const abort = new AbortController()
     const timer = setTimeout(() => abort.abort(), 15000)
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       signal: abort.signal,
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 256,
-        system: SYSTEM_PROMPT,
         messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
             content: `FUENTE: ${fuente}
@@ -86,10 +86,11 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
 
     clearTimeout(timer)
 
-    if (!res.ok) throw new Error(`Claude API error: ${res.status}`)
+    if (!res.ok) throw new Error(`Groq API error: ${res.status}`)
 
     const data = await res.json()
-    const text = data.content[0]?.text ?? ''
+    // Formato OpenAI: choices[0].message.content (vs Anthropic: content[0].text)
+    const text = data.choices[0]?.message?.content ?? ''
     const clean = text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(clean)
 
@@ -101,7 +102,7 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
     }
   } catch (err) {
     console.error('[factchecker] Error:', err)
-    // Si Claude falla, marcar como dudoso (no publicar)
+    // Si Groq falla, marcar como dudoso (no publicar)
     return {
       status: 'dudoso',
       tag: null,
