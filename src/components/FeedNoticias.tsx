@@ -2,7 +2,7 @@
 // src/components/FeedNoticias.tsx
 // Feed en tiempo real con Supabase Realtime + filtros por tag
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -41,19 +41,24 @@ export function FeedNoticias() {
   const [tagActivo, setTagActivo] = useState<string>('todos')
   const [cargando, setCargando] = useState(true)
   const [nuevasCount, setNuevasCount] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const isNewTimers = useRef<ReturnType<typeof setTimeout>[]>([])
 
   // Carga inicial
   const cargarFeed = useCallback(async (tag: string) => {
     setCargando(true)
+    setError(null)
     try {
       const url = tag === 'todos' ? '/api/feed' : `/api/feed?tag=${tag}`
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) })
       // Verificar res.ok antes de parsear: un 500 devuelve JSON pero con {error: "..."},
       // no con {noticias: [...]}, así que el error quedaría silencioso sin este check.
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`)
       const data = await res.json()
       setNoticias(data.noticias ?? [])
-    } catch {
+    } catch (err) {
+      console.error('[feed] Error cargando feed:', err)
+      setError('No se pudo cargar el feed. Intenta de nuevo más tarde.')
       setNoticias([])
     } finally {
       setCargando(false)
@@ -68,7 +73,7 @@ export function FeedNoticias() {
   // Supabase Realtime — escucha nuevas noticias aprobadas
   useEffect(() => {
     const channel = supabase
-      .channel('noticias-feed')
+      .channel(`noticias-feed-${tagActivo}`)
       .on(
         'postgres_changes',
         {
@@ -92,21 +97,32 @@ export function FeedNoticias() {
             return [{ ...nueva, isNew: true }, ...prev].slice(0, 50)
           })
           setNuevasCount(c => c + 1)
+          isNewTimers.current.push(setTimeout(() => {
+            setNoticias(prev => prev.map(n => n.id === nueva.id ? { ...n, isNew: false } : n))
+          }, 30_000))
         }
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        if (err) console.error('[realtime] Error de suscripción:', status, err)
+      })
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+      isNewTimers.current.forEach(clearTimeout)
+      isNewTimers.current = []
+    }
   }, [tagActivo])
 
   const tiempoRelativo = (iso: string) => {
-    const diff = Date.now() - new Date(iso).getTime()
+    const date = new Date(iso)
+    if (isNaN(date.getTime())) return '—'
+    const diff = Date.now() - date.getTime()
     const min = Math.floor(diff / 60000)
     if (min < 1) return 'ahora mismo'
     if (min < 60) return `hace ${min} min`
     const h = Math.floor(min / 60)
     if (h < 24) return `hace ${h}h`
-    return new Date(iso).toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })
+    return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })
   }
 
   const iconoFuente = (tipo: string) => {
@@ -158,6 +174,11 @@ export function FeedNoticias() {
           </button>
         ))}
       </div>
+
+      {/* Error de carga */}
+      {error && (
+        <p className="text-center text-sm text-red-500 py-4">{error}</p>
+      )}
 
       {/* Feed */}
       {cargando ? (

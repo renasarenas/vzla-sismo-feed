@@ -59,12 +59,9 @@ export async function verificarNoticia(
   fuente: string
 ): Promise<FactCheckResult> {
   try {
-    const abort = new AbortController()
-    const timer = setTimeout(() => abort.abort(), 15000)
-
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      signal: abort.signal,
+      signal: AbortSignal.timeout(15000),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
@@ -83,8 +80,6 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
         ],
       }),
     })
-
-    clearTimeout(timer)
 
     if (!res.ok) throw new Error(`Groq API error: ${res.status}`)
 
