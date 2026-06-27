@@ -1,5 +1,7 @@
 import { FeedNoticias } from '@/components/FeedNoticias'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Page() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let initialData: any[] = []

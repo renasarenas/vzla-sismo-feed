@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Navbar } from '@/components/Navbar'
 
 export const metadata: Metadata = {
   title: 'Venezuela Sismo 24 jun — Feed verificado',
@@ -20,15 +21,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // lang="es" porque toda la app es en español
     <html lang="es">
-      <body>{children}</body>
+      <body className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+        <Navbar />
+        {children}
+      </body>
     </html>
   )
 }

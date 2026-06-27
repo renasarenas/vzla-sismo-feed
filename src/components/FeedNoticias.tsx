@@ -1,14 +1,7 @@
 'use client'
-// src/components/FeedNoticias.tsx
-// Feed en tiempo real con Supabase Realtime + filtros por tag
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 type Noticia = {
   id: string
@@ -22,140 +15,221 @@ type Noticia = {
   factcheck_confianza: number
   factcheck_status: string
   isNew?: boolean
+  insertedAt?: number
 }
 
-const TAG_LABELS: Record<string, { label: string; color: string }> = {
-  todos:             { label: 'Todos',               color: '' },
-  sismo:             { label: 'Sismo',               color: 'bg-red-100 text-red-800' },
-  rescate:           { label: 'Rescate',             color: 'bg-orange-100 text-orange-800' },
-  desaparecidos:     { label: 'Desaparecidos',       color: 'bg-purple-100 text-purple-800' },
-  puntos_acopio:     { label: 'Puntos de acopio',    color: 'bg-green-100 text-green-800' },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria',   color: 'bg-blue-100 text-blue-800' },
-  replicas:          { label: 'Réplicas',            color: 'bg-yellow-100 text-yellow-800' },
-  donaciones:        { label: 'Donaciones',          color: 'bg-teal-100 text-teal-800' },
-  internacional:     { label: 'Internacional',       color: 'bg-slate-100 text-slate-800' },
+const TAG_META: Record<string, { label: string; border: string; pill: string }> = {
+  todos:             { label: 'Todos',            border: 'border-l-gray-300',   pill: '' },
+  sismo:             { label: 'Sismo',            border: 'border-l-red-500',    pill: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  rescate:           { label: 'Rescate',          border: 'border-l-orange-500', pill: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  desaparecidos:     { label: 'Desaparecidos',    border: 'border-l-purple-500', pill: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
+  puntos_acopio:     { label: 'Puntos de acopio', border: 'border-l-green-500',  pill: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  ayuda_humanitaria: { label: 'Ayuda humanitaria',border: 'border-l-blue-500',   pill: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  replicas:          { label: 'Réplicas',         border: 'border-l-yellow-500', pill: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  donaciones:        { label: 'Donaciones',       border: 'border-l-teal-500',   pill: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200' },
+  internacional:     { label: 'Internacional',    border: 'border-l-slate-500',  pill: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200' },
+}
+
+const LIMIT = 30
+
+function tiempoRelativo(iso: string) {
+  const date = new Date(iso)
+  if (isNaN(date.getTime())) return '—'
+  const diff = Date.now() - date.getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'ahora mismo'
+  if (min < 60) return `hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `hace ${h}h`
+  return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })
+}
+
+function iconoFuente(tipo: string) {
+  if (tipo === 'x_twitter') return '𝕏'
+  if (tipo === 'oficial') return '🏛️'
+  return '📰'
 }
 
 export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
-  const [noticias, setNoticias] = useState<Noticia[]>(initialData ?? [])
-  const [tagActivo, setTagActivo] = useState<string>('todos')
-  const [cargando, setCargando] = useState(true)
-  const [nuevasCount, setNuevasCount] = useState(0)
-  const [error, setError] = useState<string | null>(null)
-  const isNewTimers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const initialLoadDone = useRef(false)
+  // ponytail: useMemo keeps a single client per component mount; avoids module-level init which crashes SSR
+  const supabase = useMemo(() => createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), [])
 
-  // Carga inicial
-  const cargarFeed = useCallback(async (tag: string) => {
-    // noticias aquí es el valor inicial (closure estática) — equivale a initialData.length
-    if (tag === 'todos' && noticias.length > 0 && !initialLoadDone.current) {
-      initialLoadDone.current = true
-      setCargando(false)
-      return
+  const [noticias, setNoticias] = useState<Noticia[]>(initialData ?? [])
+  const [tagActivo, setTagActivo] = useState('todos')
+  const [query, setQuery] = useState('')
+  const [queryInput, setQueryInput] = useState('')
+  const [cargando, setCargando] = useState(!initialData?.length)
+  const [cargandoMas, setCargandoMas] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [offset, setOffset] = useState(initialData?.length ?? 0)
+  const [hasMore, setHasMore] = useState(true)
+  const [total, setTotal] = useState<number | null>(null)
+  const [nuevasCount, setNuevasCount] = useState(0)
+  const [statsLabel, setStatsLabel] = useState<string>('')
+
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isNewTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  // Stats bar — refreshes every 60s
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/stats')
+        if (!res.ok) return
+        const d = await res.json()
+        const ultima = d.ultima_at ? tiempoRelativo(d.ultima_at) : '—'
+        setStatsLabel(`${d.total_aprobadas} noticias · última ${ultima}`)
+      } catch { /* ignore */ }
     }
+    load()
+    const id = setInterval(load, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const buildUrl = useCallback((tag: string, q: string, off: number) => {
+    const p = new URLSearchParams({ limit: String(LIMIT), offset: String(off) })
+    if (tag !== 'todos') p.set('tag', tag)
+    if (q) p.set('q', q)
+    return `/api/feed?${p}`
+  }, [])
+
+  // Initial / filter load
+  const cargar = useCallback(async (tag: string, q: string) => {
     setCargando(true)
     setError(null)
     try {
-      const url = tag === 'todos' ? '/api/feed' : `/api/feed?tag=${tag}`
-      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) })
-      // Verificar res.ok antes de parsear: un 500 devuelve JSON pero con {error: "..."},
-      // no con {noticias: [...]}, así que el error quedaría silencioso sin este check.
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`)
+      const res = await fetch(buildUrl(tag, q, 0), { signal: AbortSignal.timeout(10_000) })
+      if (!res.ok) throw new Error(`${res.status}`)
       const data = await res.json()
-      setNoticias(data.noticias ?? [])
-      initialLoadDone.current = true
-    } catch (err) {
-      console.error('[feed] Error cargando feed:', err)
-      setError('No se pudo cargar el feed. Intenta de nuevo más tarde.')
+      const items: Noticia[] = data.noticias ?? []
+      setNoticias(items)
+      setTotal(data.total ?? null)
+      setOffset(items.length)
+      setHasMore(items.length >= LIMIT)
+    } catch {
+      setError('No se pudo cargar el feed.')
       setNoticias([])
+      setHasMore(false)
     } finally {
       setCargando(false)
       setNuevasCount(0)
     }
-  }, []) // ponytail: noticias en closure es intencional — lee el valor inicial (≡ initialData)
+  }, [buildUrl])
 
+  // Load more (infinite scroll)
+  const cargarMas = useCallback(async () => {
+    if (cargandoMas || !hasMore) return
+    setCargandoMas(true)
+    try {
+      const res = await fetch(buildUrl(tagActivo, query, offset), { signal: AbortSignal.timeout(10_000) })
+      if (!res.ok) return
+      const data = await res.json()
+      const items: Noticia[] = data.noticias ?? []
+      if (items.length < LIMIT) setHasMore(false)
+      setNoticias(prev => {
+        const ids = new Set(prev.map(n => n.id))
+        return [...prev, ...items.filter(n => !ids.has(n.id))]
+      })
+      setOffset(prev => prev + items.length)
+    } catch { /* ignore */ } finally {
+      setCargandoMas(false)
+    }
+  }, [buildUrl, tagActivo, query, offset, cargandoMas, hasMore])
+
+  // Re-load when tag or query changes
+  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, cargar])
+
+  // Debounce search input
   useEffect(() => {
-    cargarFeed(tagActivo)
-  }, [tagActivo, cargarFeed])
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setQuery(queryInput.trim()), 400)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [queryInput])
 
-  // Supabase Realtime — escucha nuevas noticias aprobadas
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect()
+    if (!hasMore) return
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) cargarMas()
+    }, { rootMargin: '200px' })
+    if (sentinelRef.current) observerRef.current.observe(sentinelRef.current)
+    return () => observerRef.current?.disconnect()
+  }, [cargarMas, hasMore])
+
+  // Realtime new items
   useEffect(() => {
     const channel = supabase
       .channel(`noticias-feed-${tagActivo}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'noticias',
-          // Solo si la nueva noticia coincide con el tag activo
-          filter: tagActivo !== 'todos' ? `tag=eq.${tagActivo}` : undefined,
-        },
-        (payload) => {
-          const nueva = payload.new as Noticia
-          // Filtramos por factcheck_status y no por factcheck_confianza porque una noticia
-          // puede tener confianza alta (ej: 80) pero status 'rechazado' o 'dudoso'.
-          // Además, los eventos INSERT de Realtime llegan antes de que RLS los filtre,
-          // así que el cliente recibe todas las inserciones y debe discriminar él mismo.
-          if (nueva.factcheck_status !== 'aprobado') return
-
-          setNoticias(prev => {
-            // Evitar duplicados
-            if (prev.find(n => n.id === nueva.id)) return prev
-            return [{ ...nueva, isNew: true }, ...prev].slice(0, 50)
-          })
-          setNuevasCount(c => c + 1)
-          isNewTimers.current.push(setTimeout(() => {
-            setNoticias(prev => prev.map(n => n.id === nueva.id ? { ...n, isNew: false } : n))
-          }, 30_000))
-        }
-      )
-      .subscribe((status, err) => {
-        if (err) console.error('[realtime] Error de suscripción:', status, err)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'noticias',
+        filter: tagActivo !== 'todos' ? `tag=eq.${tagActivo}` : undefined,
+      }, (payload) => {
+        const nueva = payload.new as Noticia
+        if (nueva.factcheck_status !== 'aprobado') return
+        if (query && !nueva.titulo.toLowerCase().includes(query.toLowerCase())) return
+        setNoticias(prev => {
+          if (prev.find(n => n.id === nueva.id)) return prev
+          return [{ ...nueva, isNew: true, insertedAt: Date.now() }, ...prev]
+        })
+        setNuevasCount(c => c + 1)
+        isNewTimers.current.push(setTimeout(() => {
+          setNoticias(prev => prev.map(n => n.id === nueva.id ? { ...n, isNew: false } : n))
+        }, 300_000))
       })
-
+      .subscribe()
     return () => {
       supabase.removeChannel(channel)
       isNewTimers.current.forEach(clearTimeout)
       isNewTimers.current = []
     }
-  }, [tagActivo])
+  }, [tagActivo, query])
 
-  const tiempoRelativo = (iso: string) => {
-    const date = new Date(iso)
-    if (isNaN(date.getTime())) return '—'
-    const diff = Date.now() - date.getTime()
-    const min = Math.floor(diff / 60000)
-    if (min < 1) return 'ahora mismo'
-    if (min < 60) return `hace ${min} min`
-    const h = Math.floor(min / 60)
-    if (h < 24) return `hace ${h}h`
-    return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })
-  }
-
-  const iconoFuente = (tipo: string) => {
-    if (tipo === 'x_twitter') return '𝕏'
-    if (tipo === 'oficial') return '🏛️'
-    return '📰'
-  }
+  const isNuevo = (n: Noticia) => n.isNew && n.insertedAt && Date.now() - n.insertedAt < 300_000
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 font-sans">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="mb-4">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <h1 className="text-lg font-medium text-gray-900">
+          <h1 className="text-lg font-medium text-gray-900 dark:text-white">
             Venezuela — Sismo 24 jun
           </h1>
         </div>
-        <span className="text-xs text-gray-400">
-          Solo noticias verificadas
-        </span>
+        {statsLabel && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 ml-4">{statsLabel}</p>
+        )}
       </div>
 
-      {/* Banner de nuevas noticias */}
+      {/* Buscador */}
+      <div className="relative mb-4">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+        <input
+          type="text"
+          value={queryInput}
+          onChange={e => setQueryInput(e.target.value)}
+          placeholder="Buscar noticias..."
+          className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-gray-400 transition-colors"
+        />
+      </div>
+
+      {/* Query result label */}
+      {query && total !== null && (
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          {total} resultado{total !== 1 ? 's' : ''} para &ldquo;{query}&rdquo;
+        </p>
+      )}
+
+      {/* Banner nuevas */}
       {nuevasCount > 0 && (
         <button
           onClick={() => { setNuevasCount(0); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
@@ -165,17 +239,19 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         </button>
       )}
 
-      {/* Filtros por tag */}
+      {/* Tags */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
-        {Object.entries(TAG_LABELS).map(([key, { label }]) => (
+        {Object.entries(TAG_META).map(([key, { label, pill }]) => (
           <button
             key={key}
             onClick={() => setTagActivo(key)}
             className={`
               whitespace-nowrap text-xs px-3 py-1.5 rounded-full border transition-colors
               ${tagActivo === key
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}
+                ? `bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100`
+                : pill
+                  ? `${pill} border-transparent hover:opacity-80`
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'}
             `}
           >
             {label}
@@ -183,16 +259,14 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         ))}
       </div>
 
-      {/* Error de carga */}
-      {error && (
-        <p className="text-center text-sm text-red-500 py-4">{error}</p>
-      )}
+      {/* Error */}
+      {error && <p className="text-center text-sm text-red-500 py-4">{error}</p>}
 
       {/* Feed */}
       {cargando ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : noticias.length === 0 ? (
@@ -201,69 +275,79 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           <p className="text-sm">Sin noticias verificadas en esta categoría</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {noticias.map((n) => {
-            const tagInfo = TAG_LABELS[n.tag]
-            return (
-              <a
-                key={n.id}
-                href={n.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`
-                  block p-4 rounded-xl border border-gray-100 bg-white
-                  hover:border-gray-300 hover:shadow-sm transition-all
-                  ${n.isNew ? 'ring-2 ring-red-200 ring-offset-1' : ''}
-                `}
-              >
-                {/* Meta row */}
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-medium text-gray-500">
-                    {iconoFuente(n.fuente_tipo)} {n.fuente}
-                  </span>
-                  {tagInfo && (
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${tagInfo.color}`}>
-                      {tagInfo.label}
+        <>
+          <div className="space-y-3">
+            {noticias.map(n => {
+              const meta = TAG_META[n.tag]
+              return (
+                <a
+                  key={n.id}
+                  href={n.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`
+                    block p-4 rounded-xl border border-gray-100 dark:border-gray-700
+                    bg-white dark:bg-gray-800
+                    border-l-[3px] ${meta?.border ?? 'border-l-gray-300'}
+                    hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all
+                    ${isNuevo(n) ? 'ring-2 ring-red-200 dark:ring-red-800 ring-offset-1' : ''}
+                  `}
+                >
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      {iconoFuente(n.fuente_tipo)} {n.fuente}
                     </span>
-                  )}
-                  {n.isNew && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500 text-white">
-                      NUEVO
+                    {meta && meta.pill && (
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${meta.pill}`}>
+                        {meta.label}
+                      </span>
+                    )}
+                    {isNuevo(n) && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500 text-white">
+                        NUEVO
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                      {tiempoRelativo(n.publicado_at)}
                     </span>
-                  )}
-                  <span className="text-xs text-gray-400 ml-auto">
-                    {tiempoRelativo(n.publicado_at)}
-                  </span>
-                </div>
-
-                {/* Título */}
-                <p className="text-sm font-medium text-gray-900 leading-snug mb-1">
-                  {n.titulo}
-                </p>
-
-                {/* Descripción corta */}
-                {n.descripcion && (
-                  <p className="text-xs text-gray-500 line-clamp-2">
-                    {n.descripcion}
-                  </p>
-                )}
-
-                {/* Confianza */}
-                <div className="mt-2 flex items-center gap-1.5">
-                  <div className="flex-1 h-0.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-400 rounded-full"
-                      style={{ width: `${n.factcheck_confianza}%` }}
-                    />
                   </div>
-                  <span className="text-[10px] text-gray-400">
-                    {n.factcheck_confianza}% verificado
-                  </span>
-                </div>
-              </a>
-            )
-          })}
-        </div>
+
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-1">
+                    {n.titulo}
+                  </p>
+
+                  {n.descripcion && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                      {n.descripcion}
+                    </p>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <div className="flex-1 h-0.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-green-400 rounded-full"
+                        style={{ width: `${n.factcheck_confianza}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                      {n.factcheck_confianza}% verificado
+                    </span>
+                  </div>
+                </a>
+              )
+            })}
+          </div>
+
+          {/* Sentinel + spinner */}
+          <div ref={sentinelRef} className="py-4 text-center">
+            {cargandoMas && (
+              <div className="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            )}
+            {!hasMore && noticias.length > 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">No hay más noticias</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   )

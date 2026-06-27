@@ -7,10 +7,7 @@ import Parser from 'rss-parser'
 import { FUENTES, preFiltroPasa } from '@/lib/sources'
 import { verificarNoticia } from '@/lib/factchecker'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // service role para escribir
-)
+export const dynamic = 'force-dynamic'
 
 const parser = new Parser({
   customFields: { item: ['media:content', 'enclosure'] },
@@ -18,6 +15,10 @@ const parser = new Parser({
 })
 
 export async function GET(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   // Si CRON_SECRET no está definida, la comparación sería `authHeader !== "Bearer undefined"`,
   // lo que permite que cualquiera dispare el cron enviando ese header literal.
   if (process.env.NODE_ENV === 'production' && !process.env.CRON_SECRET) {
@@ -41,7 +42,7 @@ export async function GET(req: Request) {
   for (const fuente of FUENTES) {
     // USGS se maneja aparte (GeoJSON, no RSS)
     if (fuente.url.includes('usgs.gov')) {
-      const counts = await ingestUSGS(fuente.nombre)
+      const counts = await ingestUSGS(supabase, fuente.nombre)
       procesadas += counts.procesadas
       aprobadas += counts.aprobadas
       continue
@@ -123,12 +124,14 @@ export async function GET(req: Request) {
 }
 
 // Ingesta especial para datos sísmicos del USGS (GeoJSON)
-async function ingestUSGS(nombreFuente: string): Promise<{ procesadas: number; aprobadas: number }> {
+// ponytail: supabase passed in — module-level init fails at build time (no env vars)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ingestUSGS(supabase: any, nombreFuente: string): Promise<{ procesadas: number; aprobadas: number }> {
   let procesadas = 0
   let aprobadas = 0
   try {
     const res = await fetch(
-      'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson',
+      'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
       { signal: AbortSignal.timeout(8000) }
     )
     if (!res.ok) throw new Error(`USGS error ${res.status}`)
@@ -172,14 +175,13 @@ async function ingestUSGS(nombreFuente: string): Promise<{ procesadas: number; a
         url,
         fuente: nombreFuente,
         fuente_tipo: 'oficial',
-        // La magnitud sola no define si algo es réplica — lo define la relación temporal
-        // y espacial con el evento del 24 de junio. Clasificar réplicas correctamente
-        // requeriría comparar epicentro y hora, lo que está fuera del scope de este MVP.
         tag: 'sismo',
-        factcheck_status: 'aprobado', // USGS es fuente oficial, auto-aprobado
+        factcheck_status: 'aprobado',
         factcheck_razon: 'Fuente oficial USGS',
         factcheck_confianza: 99,
         publicado_at: new Date(props.time).toISOString(),
+        lat: feature.geometry.coordinates[1],
+        lng: feature.geometry.coordinates[0],
       })
       if (insertError) {
         console.error('[ingest] Error insertando USGS:', insertError.message)

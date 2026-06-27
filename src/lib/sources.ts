@@ -51,7 +51,7 @@ export const FUENTES: Source[] = [
   {
     nombre: 'USGS Sismos',
     tipo: 'oficial',
-    url: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson',
+    url: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
     confiabilidad: 'alta',
   },
   // Nitter (X/Twitter sin API de pago) — confiabilidad media, necesita más fact-check
