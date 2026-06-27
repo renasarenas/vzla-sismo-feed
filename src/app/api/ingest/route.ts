@@ -53,12 +53,19 @@ export async function GET(req: Request) {
         if (!preFiltroPasa(titulo, desc)) continue
 
         // 2. Verificar duplicado en DB
-        const { data: existe } = await supabase
+        // maybeSingle() devuelve null (sin error) cuando no hay filas.
+        // single() en cambio lanza error tanto por "sin filas" como por fallo real de DB,
+        // lo que hace que un error silencioso se confunda con "no existe" y se inserte igual.
+        const { data: existe, error: checkError } = await supabase
           .from('noticias')
           .select('id')
           .eq('url', url)
-          .single()
+          .maybeSingle()
 
+        if (checkError) {
+          console.error('[ingest] Error chequeando duplicado:', checkError.message)
+          continue
+        }
         if (existe) { duplicadas++; continue }
 
         procesadas++
@@ -121,12 +128,19 @@ async function ingestUSGS(nombreFuente: string) {
       const titulo = `Sismo M${mag.toFixed(1)} — ${lugar}`
       const desc = `Magnitud ${mag}, profundidad ${feature.geometry?.coordinates?.[2] ?? '?'} km. Hora UTC: ${new Date(props.time).toISOString()}`
 
-      const { data: existe } = await supabase
+      // maybeSingle() devuelve null (sin error) cuando no hay filas.
+      // single() lanza error tanto por "sin filas" como por fallo real de DB,
+      // lo que hace que un error silencioso se confunda con "no existe" y se inserte igual.
+      const { data: existe, error: checkError } = await supabase
         .from('noticias')
         .select('id')
         .eq('url', url)
-        .single()
+        .maybeSingle()
 
+      if (checkError) {
+        console.error('[ingest] Error chequeando duplicado:', checkError.message)
+        continue
+      }
       if (existe) continue
 
       await supabase.from('noticias').insert({

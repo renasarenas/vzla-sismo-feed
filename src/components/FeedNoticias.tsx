@@ -20,6 +20,7 @@ type Noticia = {
   tag: string
   publicado_at: string
   factcheck_confianza: number
+  factcheck_status: string
   isNew?: boolean
 }
 
@@ -71,8 +72,11 @@ export function FeedNoticias() {
         },
         (payload) => {
           const nueva = payload.new as Noticia
-          // Solo mostrar aprobadas (la RLS ya filtra, pero doble check)
-          if (nueva.factcheck_confianza < 60) return
+          // Filtramos por factcheck_status y no por factcheck_confianza porque una noticia
+          // puede tener confianza alta (ej: 80) pero status 'rechazado' o 'dudoso'.
+          // Además, los eventos INSERT de Realtime llegan antes de que RLS los filtre,
+          // así que el cliente recibe todas las inserciones y debe discriminar él mismo.
+          if (nueva.factcheck_status !== 'aprobado') return
 
           setNoticias(prev => {
             // Evitar duplicados
