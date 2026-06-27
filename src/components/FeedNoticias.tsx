@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
@@ -25,7 +25,7 @@ const TAG_META: Record<string, { label: string; border: string; pill: string }> 
   desaparecidos:     { label: 'Desaparecidos',    border: 'border-l-purple-500', pill: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
   puntos_acopio:     { label: 'Puntos de acopio', border: 'border-l-green-500',  pill: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   ayuda_humanitaria: { label: 'Ayuda humanitaria',border: 'border-l-blue-500',   pill: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  replicas:          { label: 'Réplicas',         border: 'border-l-yellow-500', pill: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  replicas:          { label: 'RÃ©plicas',         border: 'border-l-yellow-500', pill: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
   donaciones:        { label: 'Donaciones',       border: 'border-l-teal-500',   pill: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200' },
   internacional:     { label: 'Internacional',    border: 'border-l-slate-500',  pill: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200' },
 }
@@ -34,7 +34,7 @@ const LIMIT = 30
 
 function tiempoRelativo(iso: string) {
   const date = new Date(iso)
-  if (isNaN(date.getTime())) return '—'
+  if (isNaN(date.getTime())) return 'â€”'
   const diff = Date.now() - date.getTime()
   const min = Math.floor(diff / 60000)
   if (min < 1) return 'ahora mismo'
@@ -45,9 +45,9 @@ function tiempoRelativo(iso: string) {
 }
 
 function iconoFuente(tipo: string) {
-  if (tipo === 'x_twitter') return '𝕏'
-  if (tipo === 'oficial') return '🏛️'
-  return '📰'
+  if (tipo === 'x_twitter') return 'ð•'
+  if (tipo === 'oficial') return 'ðŸ›ï¸'
+  return 'ðŸ“°'
 }
 
 export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
@@ -68,6 +68,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const [hasMore, setHasMore] = useState(true)
   const [total, setTotal] = useState<number | null>(null)
   const [nuevasCount, setNuevasCount] = useState(0)
+  const [view, setView] = useState<'feed' | 'medios'>('feed')
   const [statsLabel, setStatsLabel] = useState<string>('')
 
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -75,15 +76,15 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isNewTimers = useRef<ReturnType<typeof setTimeout>[]>([])
 
-  // Stats bar — refreshes every 60s
+  // Stats bar â€” refreshes every 60s
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetch('/api/stats')
         if (!res.ok) return
         const d = await res.json()
-        const ultima = d.ultima_at ? tiempoRelativo(d.ultima_at) : '—'
-        setStatsLabel(`${d.total_aprobadas} noticias · última ${ultima}`)
+        const ultima = d.ultima_at ? tiempoRelativo(d.ultima_at) : 'â€”'
+        setStatsLabel(`${d.total_aprobadas} noticias Â· Ãºltima ${ultima}`)
       } catch { /* ignore */ }
     }
     load()
@@ -202,7 +203,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
-            Venezuela — Sismo 24 jun
+            Venezuela â€” Sismo 24 jun
           </h1>
         </div>
         {statsLabel && (
@@ -212,7 +213,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
       {/* Buscador */}
       <div className="relative mb-4">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">ðŸ”</span>
         <input
           type="text"
           value={queryInput}
@@ -229,8 +230,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         </p>
       )}
 
-      {/* Banner nuevas */}
-      {nuevasCount > 0 && (
+      {/* Tab switcher */}
+      <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-4">
+        (
         <button
           onClick={() => setView('feed')}
           className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
@@ -261,7 +263,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
               onClick={() => { setNuevasCount(0); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               className="w-full mb-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
             >
-              ↑ {nuevasCount} nueva{nuevasCount > 1 ? 's' : ''} noticia{nuevasCount > 1 ? 's' : ''}
+              â†‘ {nuevasCount} nueva{nuevasCount > 1 ? 's' : ''} noticia{nuevasCount > 1 ? 's' : ''}
             </button>
           )}
 
@@ -297,8 +299,8 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         </div>
       ) : noticias.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">📡</p>
-          <p className="text-sm">Sin noticias verificadas en esta categoría</p>
+          <p className="text-4xl mb-3">ðŸ“¡</p>
+          <p className="text-sm">Sin noticias verificadas en esta categorÃ­a</p>
         </div>
       ) : (
         <>
@@ -370,7 +372,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
               <div className="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
             )}
             {!hasMore && noticias.length > 0 && (
-              <p className="text-xs text-gray-400 dark:text-gray-500">No hay más noticias</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">No hay mÃ¡s noticias</p>
             )}
           </div>
         </>
@@ -380,7 +382,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-4">
             <h3 className="text-sm font-bold text-blue-900 mb-1">Timeline de Medios Oficiales</h3>
-            <p className="text-xs text-blue-700">Integración con perfiles verificados (ej. @Funvisis, @PCivil_Ve, etc.).</p>
+            <p className="text-xs text-blue-700">IntegraciÃ³n con perfiles verificados (ej. @Funvisis, @PCivil_Ve, etc.).</p>
           </div>
 
           {/* Timeline de Medios */}
@@ -389,20 +391,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             {noticias
               .filter(n => n.fuente.startsWith('@'))
               .map((n) => {
-                // Seleccionar icono según cuenta (opcional)
-                let icon = '📰'
+                // Seleccionar icono segÃºn cuenta (opcional)
+                let icon = 'ðŸ“°'
                 let colorClass = 'bg-blue-100'
                 if (n.fuente.includes('PCivil_Ve') || n.fuente.includes('bomberos')) {
-                  icon = '🚨'
+                  icon = 'ðŸš¨'
                   colorClass = 'bg-orange-100'
                 } else if (n.fuente.includes('CruzRoja')) {
-                  icon = '🏥'
+                  icon = 'ðŸ¥'
                   colorClass = 'bg-red-100'
                 } else if (n.fuente.includes('Funvisis') || n.fuente.includes('usembassy') || n.fuente.includes('nayibbukele')) {
-                  icon = '🏛️'
+                  icon = 'ðŸ›ï¸'
                   colorClass = 'bg-blue-100'
                 } else {
-                  icon = 'ℹ️'
+                  icon = 'â„¹ï¸'
                   colorClass = 'bg-gray-100'
                 }
 
@@ -451,3 +453,5 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     </div>
   )
 }
+
+
