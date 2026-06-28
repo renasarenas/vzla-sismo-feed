@@ -20,15 +20,15 @@ type Noticia = {
 
 // Color text + left border per category. No pill backgrounds.
 const TAG_META: Record<string, { label: string; border: string; text: string; short: string }> = {
-  todos:             { label: 'Todas las categorías', border: 'border-l-[#444]',       text: 'text-[#888]',        short: 'Todas'    },
-  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020]',     short: 'Sismo'    },
-  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316]',     short: 'Rescate'  },
-  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7]',     short: 'Desap.'   },
-  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E]',     short: 'Acopio'   },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6]',     short: 'Ayuda'    },
-  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308]',     short: 'Réplicas' },
-  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6]',     short: 'Donar'    },
-  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8]',     short: 'Int.'     },
+  todos:             { label: 'Todas las categorías', border: 'border-l-[#444]',       text: 'text-ink-muted dark:text-ink-muted-dark', short: 'Todas'    },
+  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020]',                         short: 'Sismo'    },
+  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316]',                         short: 'Rescate'  },
+  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7]',                         short: 'Desap.'   },
+  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E]',                         short: 'Acopio'   },
+  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6]',                         short: 'Ayuda'    },
+  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308]',                         short: 'Réplicas' },
+  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6]',                         short: 'Donar'    },
+  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8]',                         short: 'Int.'     },
 }
 
 const LIMIT = 30
@@ -71,18 +71,18 @@ function SearchIcon() {
 
 function EmptyState({ error, degraded }: { error?: boolean; degraded?: boolean }) {
   return (
-    <div className="py-16 px-6 border border-[#222] border-l-[3px] border-l-[#CF1020] bg-[#161616]">
+    <div className="py-16 px-6 border border-rule dark:border-rule-dark border-l-[3px] border-l-[#CF1020] bg-panel dark:bg-panel-dark">
       <p className="font-mono text-[10px] uppercase tracking-widest text-crisis-red mb-3">
         {degraded ? 'Servicio en modo local' : error ? 'Sin conexión' : 'Sin registros'}
       </p>
-      <h3 className="font-serif font-semibold text-white text-lg mb-2">
+      <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-lg mb-2">
         {degraded
           ? 'El boletín no está conectado a la base de datos'
           : error
             ? 'No se pudo cargar el boletín'
             : 'Aún no hay reportes en esta categoría'}
       </h3>
-      <p className="font-mono text-xs text-[#666] max-w-prose">
+      <p className="font-mono text-xs text-ink-muted dark:text-ink-muted-dark max-w-prose">
         {degraded
           ? 'Conecta Supabase para ver reportes verificados en tiempo real.'
           : error
@@ -96,10 +96,10 @@ function EmptyState({ error, degraded }: { error?: boolean; degraded?: boolean }
 function ResumenEvento() {
   const [open, setOpen] = useState(true)
   return (
-    <div className="bg-[#161616] border border-[#2A2A2A] p-4 mb-4">
+    <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-4 mb-4">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-[#999] transition-colors"
+        className="w-full flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-[#999] transition-colors"
       >
         <span>Resumen del evento</span>
         <span>{open ? '▲' : '▼'}</span>
@@ -109,12 +109,12 @@ function ResumenEvento() {
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-3">
             {RESUMEN_DATOS.map(({ num, label, red }) => (
               <div key={label}>
-                <p className={`font-mono text-xl font-bold ${red ? 'text-crisis-red' : 'text-white'}`}>{num}</p>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-[#555] mt-0.5">{label}</p>
+                <p className={`font-mono text-xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
               </div>
             ))}
           </div>
-          <p className="font-mono text-[10px] text-[#444] mt-3">
+          <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-3">
             Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
           </p>
         </>
@@ -320,18 +320,18 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   return (
     <>
       {/* Header compacto — una sola línea */}
-      <div className="border-b border-[#1E1E1E] px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <span className="w-2 h-2 rounded-full bg-crisis-red animate-pulse shrink-0" />
           <span className="font-mono text-[11px] tracking-widest text-crisis-red uppercase shrink-0">En vivo</span>
-          <span className="h-3 w-px bg-[#2A2A2A] shrink-0" />
-          <span className="font-mono text-[11px] text-[#666] tracking-wide truncate">
+          <span className="h-3 w-px bg-rule dark:bg-rule-dark shrink-0" />
+          <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tracking-wide truncate">
             Sismo Venezuela · 24 jun 2026
           </span>
         </div>
         <div className="flex items-center gap-4 shrink-0">
           {statsLabel && (
-            <span className="font-mono text-[11px] text-[#444] tracking-wide hidden sm:block tnum">
+            <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tracking-wide hidden sm:block tnum">
               {statsLabel}
             </span>
           )}
@@ -339,20 +339,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           {notifPermiso === 'default' && (
             <button
               onClick={() => Notification.requestPermission().then(p => setNotifPermiso(p))}
-              className="font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-white transition-colors"
+              className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
             >
               🔔 Activar alertas
             </button>
           )}
           {notifPermiso === 'granted' && (
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#555]">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
               🔔 Alertas activas
             </span>
           )}
           {/* Feature 6: export button */}
           <button
             onClick={handleExportar}
-            className="font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-white transition-colors"
+            className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
           >
             {exportado ? '✓ Copiado' : 'Exportar'}
           </button>
@@ -360,7 +360,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       </div>
 
       {/* Barra de filtros */}
-      <div className="border-b border-[#1E1E1E] px-4 sm:px-6 pt-3">
+      <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 pt-3">
         {/* Row 1: tags + idioma */}
         <div className="flex items-end gap-4">
           {/* Scroll horizontal de categorías */}
@@ -374,7 +374,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                   className={`font-mono text-[10px] uppercase tracking-widest shrink-0 pb-2.5 border-b-2 transition-colors ${
                     active
                       ? `border-crisis-red ${text}`
-                      : 'border-transparent text-[#555] hover:text-[#999]'
+                      : 'border-transparent text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
                   }`}
                 >
                   {short}
@@ -389,7 +389,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                 key={lang}
                 onClick={() => setIdiomaActivo(idiomaActivo === lang ? 'todos' : lang)}
                 className={`font-mono text-[11px] uppercase tracking-widest transition-colors ${
-                  idiomaActivo === lang ? 'text-white' : 'text-[#555] hover:text-[#999]'
+                  idiomaActivo === lang
+                    ? 'text-ink dark:text-ink-dark'
+                    : 'text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
                 }`}
               >
                 {lang}
@@ -399,7 +401,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         </div>
         {/* Row 2: buscador */}
         <div className="relative">
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[#444]">
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 text-ink-muted dark:text-ink-muted-dark">
             <SearchIcon />
           </span>
           <input
@@ -407,7 +409,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             value={queryInput}
             onChange={e => setQueryInput(e.target.value)}
             placeholder="Buscar noticias…"
-            className="w-full pl-5 pr-4 py-2.5 font-mono text-[11px] tracking-wide bg-transparent border-b border-[#222] text-white placeholder-[#333] focus:border-[#555] focus:outline-none transition-colors"
+            className="w-full pl-5 pr-4 py-2.5 font-mono text-[11px] tracking-wide bg-transparent border-b border-rule dark:border-rule-dark text-ink dark:text-ink-dark placeholder-[#333] focus:border-[#555] focus:outline-none transition-colors"
           />
         </div>
       </div>
@@ -418,7 +420,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         <ResumenEvento />
 
         {query && total !== null && (
-          <p className="font-mono text-[10px] text-[#555] tracking-widest uppercase mb-4 tnum">
+          <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-widest uppercase mb-4 tnum">
             {total} resultado{total !== 1 ? 's' : ''} para &ldquo;{query}&rdquo;
           </p>
         )}
@@ -440,7 +442,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         {cargando ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-[#161616] border border-[#222] border-l-[3px] border-l-[#333] p-4 animate-pulse">
+              <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] border-l-[#333] p-4 animate-pulse">
                 <div className="h-2.5 w-20 bg-[#2A2A2A] mb-3" />
                 <div className="h-5 w-full bg-[#2A2A2A] mb-2" />
                 <div className="h-4 w-3/4 bg-[#2A2A2A]" />
@@ -461,7 +463,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
-                      group block bg-[#161616] border border-[#222] rounded-none
+                      group block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-none
                       border-l-[3px] ${meta?.border ?? 'border-l-[#444]'}
                       p-4 hover:bg-[#1A1A1A] transition-colors
                       ${isNuevo(n) ? 'ring-1 ring-inset ring-[#CF1020]/30' : ''}
@@ -469,22 +471,22 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                   >
                     {/* Primera línea: tag · fuente · tiempo */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className={`font-mono text-[10px] uppercase tracking-widest shrink-0 ${meta?.text ?? 'text-[#888]'}`}>
+                      <span className={`font-mono text-[10px] uppercase tracking-widest shrink-0 ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
                         {meta?.short ?? n.tag}
                       </span>
-                      <span className="font-mono text-[10px] text-[#555] tracking-wide tnum truncate text-right">
+                      <span className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum truncate text-right">
                         {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
                       </span>
                     </div>
 
                     {/* Título */}
-                    <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-white group-hover:text-[#CF1020] transition-colors mb-2">
+                    <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-[#CF1020] transition-colors mb-2">
                       {n.titulo}
                     </h2>
 
                     {/* Descripción */}
                     {n.descripcion && (
-                      <p className="text-xs text-[#666] line-clamp-2">
+                      <p className="text-xs text-ink-muted dark:text-ink-muted-dark line-clamp-2">
                         {n.descripcion}
                       </p>
                     )}
@@ -496,7 +498,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     )}
 
                     {/* Feature 1: botones de compartir */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-3 pt-2 border-t border-[#222]">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-3 pt-2 border-t border-rule dark:border-rule-dark">
                       <button
                         onClick={e => {
                           e.preventDefault()
@@ -507,7 +509,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             'noopener,noreferrer'
                           )
                         }}
-                        className="font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-white transition-colors px-2 py-1"
+                        className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors px-2 py-1"
                       >
                         WA
                       </button>
@@ -521,7 +523,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             'noopener,noreferrer'
                           )
                         }}
-                        className="font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-white transition-colors px-2 py-1"
+                        className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors px-2 py-1"
                       >
                         TG
                       </button>
@@ -535,7 +537,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                           setCopiadoId(n.id)
                           setTimeout(() => setCopiadoId(prev => prev === n.id ? null : prev), 1500)
                         }}
-                        className="font-mono text-[10px] uppercase tracking-widest text-[#555] hover:text-white transition-colors px-2 py-1"
+                        className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors px-2 py-1"
                       >
                         {copiadoId === n.id ? '✓' : '🔗'}
                       </button>
@@ -551,7 +553,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                 <div className="inline-block w-4 h-4 border border-[#333] border-t-crisis-red rounded-full animate-spin" />
               )}
               {!hasMore && noticias.length > 0 && (
-                <p className="font-mono text-[10px] uppercase tracking-widest text-[#444]">Fin del feed</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">Fin del feed</p>
               )}
             </div>
           </>
