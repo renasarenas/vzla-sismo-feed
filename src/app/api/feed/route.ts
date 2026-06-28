@@ -1,6 +1,7 @@
 // src/app/api/feed/route.ts
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
+import { isSupabaseConfigured, supabaseDegradedResponse } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,8 @@ const TAGS_VALIDOS = [
 ]
 
 export async function GET(req: NextRequest) {
+  if (!isSupabaseConfigured()) return supabaseDegradedResponse()
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

@@ -1,6 +1,25 @@
 import type { Metadata } from 'next'
+import { Newsreader, Inter } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/Navbar'
+import { NumerosEmergencia } from '@/components/NumerosEmergencia'
+
+// Editorial pairing: a screen-optimized news serif for the masthead and
+// headlines, a workhorse sans for UI, data and body copy.
+const serif = Newsreader({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const sans = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Venezuela Sismo 24 jun — Feed verificado',
@@ -23,10 +42,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+    <html lang="es" className={`${serif.variable} ${sans.variable}`}>
+      <body className="bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark min-h-screen font-sans antialiased">
         <Navbar />
         {children}
+        <NumerosEmergencia />
       </body>
     </html>
   )

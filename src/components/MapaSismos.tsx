@@ -50,17 +50,20 @@ export function MapaSismos() {
       .not('lat', 'is', null)
       .limit(100)
       .then(({ data }) => { if (data) setSismos(data as Sismo[]) })
-  }, [])
+  }, [supabase])
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <h1 className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">
-        Mapa de sismos registrados
-      </h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {sismos.length} eventos registrados
-      </p>
-      <div style={{ height: '70vh' }} className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+    <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14">
+      <header className="border-b-2 border-ink dark:border-ink-dark pb-6 mb-6">
+        <p className="text-eyebrow uppercase text-crisis-red mb-3">Mapa sísmico</p>
+        <h1 className="font-serif text-display text-ink dark:text-ink-dark">
+          Eventos registrados por fuentes oficiales
+        </h1>
+        <p className="text-lead text-ink-muted dark:text-ink-muted-dark mt-3 max-w-prose">
+          Ubicación geográfica de los sismos reportados. {sismos.length} registros disponibles.
+        </p>
+      </header>
+      <div style={{ height: '70vh' }} className="overflow-hidden border border-rule-strong/30 dark:border-rule-dark">
         <MapContainer
           center={[10.48, -66.90]}
           zoom={6}
@@ -75,14 +78,14 @@ export function MapaSismos() {
               <Popup>
                 <p className="font-medium text-sm">{s.titulo}</p>
                 <p className="text-xs text-gray-500">{s.factcheck_confianza}% confianza</p>
-                <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600">
-                  Ver más →
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-crisis-blue hover:underline">
+                  Ver más
                 </a>
               </Popup>
             </Marker>
           ))}
         </MapContainer>
       </div>
-    </div>
+    </main>
   )
 }

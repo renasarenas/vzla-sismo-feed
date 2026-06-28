@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 const MapaSismos = nextDynamic(
   () => import('@/components/MapaSismos').then(m => m.MapaSismos),
-  { ssr: false, loading: () => <div className="max-w-2xl mx-auto px-4 py-6 text-sm text-gray-400">Cargando mapa…</div> }
+  { ssr: false, loading: () => <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-14 text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark">Cargando mapa…</div> }
 )
 
 export default function MapaPage() {

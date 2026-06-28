@@ -33,3 +33,11 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 package-lock.json
+
+# Agent skills (local tooling, reinstalled via `npx skills add ...`)
+# See PROGRESS.md Session 002 for the list and reinstall commands.
+.agents/
+
+# Playwright MCP artifacts and screenshots generated during local verification
+.playwright-mcp/
+screenshots/

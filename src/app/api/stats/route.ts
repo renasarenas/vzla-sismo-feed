@@ -1,10 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
+import { isSupabaseConfigured } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
 const TAGS = ['sismo', 'rescate', 'desaparecidos', 'puntos_acopio', 'ayuda_humanitaria', 'replicas', 'donaciones', 'internacional']
 
+function degradedResponse() {
+  const por_tag: Record<string, number> = {}
+  TAGS.forEach(tag => { por_tag[tag] = 0 })
+  return Response.json(
+    { degraded: true, reason: 'supabase_not_configured', total_aprobadas: 0, por_tag, ultima_at: null },
+    { status: 200 }
+  )
+}
+
 export async function GET() {
+  if (!isSupabaseConfigured()) return degradedResponse()
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
