@@ -45,6 +45,8 @@ CRITERIOS DE RECHAZO:
 - Especulación sin base
 - Contenido duplicado o irrelevante
 
+NOTA: La noticia puede estar en español o en inglés. Analiza el contenido en cualquiera de los dos idiomas y responde siempre en el JSON indicado.
+
 Responde SOLO con JSON, sin texto adicional:
 {
   "status": "aprobado" | "rechazado" | "dudoso",

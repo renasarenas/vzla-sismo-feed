@@ -10,6 +10,7 @@ type Noticia = {
   fuente: string
   fuente_tipo: 'rss' | 'x_twitter' | 'oficial'
   tag: string
+  idioma: 'es' | 'en'
   publicado_at: string
   factcheck_confianza: number
   factcheck_status: string
@@ -57,6 +58,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
   const [noticias, setNoticias] = useState<Noticia[]>(initialData ?? [])
   const [tagActivo, setTagActivo] = useState('todos')
+  const [idiomaActivo, setIdiomaActivo] = useState<'todos' | 'es' | 'en'>('todos')
   const [query, setQuery] = useState('')
   const [queryInput, setQueryInput] = useState('')
   const [cargando, setCargando] = useState(!initialData?.length)
@@ -89,10 +91,11 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     return () => clearInterval(id)
   }, [])
 
-  const buildUrl = useCallback((tag: string, q: string, off: number) => {
+  const buildUrl = useCallback((tag: string, q: string, off: number, idioma: 'todos' | 'es' | 'en') => {
     const p = new URLSearchParams({ limit: String(LIMIT), offset: String(off) })
     if (tag !== 'todos') p.set('tag', tag)
     if (q) p.set('q', q)
+    if (idioma !== 'todos') p.set('lang', idioma)
     return `/api/feed?${p}`
   }, [])
 
@@ -100,7 +103,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     setCargando(true)
     setError(null)
     try {
-      const res = await fetch(buildUrl(tag, q, 0), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tag, q, 0, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) throw new Error(`${res.status}`)
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -122,7 +125,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     if (cargandoMas || !hasMore) return
     setCargandoMas(true)
     try {
-      const res = await fetch(buildUrl(tagActivo, query, offset), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tagActivo, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) return
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -135,9 +138,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     } catch { /* ignore */ } finally {
       setCargandoMas(false)
     }
-  }, [buildUrl, tagActivo, query, offset, cargandoMas, hasMore])
+  }, [buildUrl, tagActivo, query, offset, idiomaActivo, cargandoMas, hasMore])
 
-  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, cargar])
+  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, cargar])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -219,6 +222,23 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           {total} resultado{total !== 1 ? 's' : ''} para &ldquo;{query}&rdquo;
         </p>
       )}
+
+      {/* Filtro de idioma */}
+      <div className="flex gap-1 mb-3">
+        {(['todos', 'es', 'en'] as const).map(lang => (
+          <button
+            key={lang}
+            onClick={() => setIdiomaActivo(lang)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+              idiomaActivo === lang
+                ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+            }`}
+          >
+            {lang === 'todos' ? 'Todos' : lang === 'es' ? '🇻🇪 ES' : '🌐 EN'}
+          </button>
+        ))}
+      </div>
 
       {/* Tab switcher */}
       <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-4">
@@ -314,6 +334,11 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                           {iconoFuente(n.fuente_tipo)} {n.fuente}
                         </span>
+                        {n.idioma === 'en' && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                            EN
+                          </span>
+                        )}
                         {meta && meta.pill && (
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${meta.pill}`}>
                             {meta.label}
