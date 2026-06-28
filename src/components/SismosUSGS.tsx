@@ -29,8 +29,8 @@ export function SismosUSGS() {
         if (!res.ok) throw new Error('Error al obtener los datos de USGS')
         const data = await res.json()
         setSismos(data.features || [])
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err))
       } finally {
         setCargando(false)
       }
@@ -103,7 +103,7 @@ export function SismosUSGS() {
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-gray-500">
-                    Profundidad: {s.geometry.coordinates[2]} km
+                    Profundidad: {s.geometry?.coordinates?.[2] ?? '?'} km
                   </span>
                   <span className="text-xs text-gray-400 ml-auto">
                     {tiempoRelativo(s.properties.time)}

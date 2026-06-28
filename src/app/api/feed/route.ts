@@ -30,7 +30,11 @@ export async function GET(req: NextRequest) {
       .eq('factcheck_status', 'aprobado')
     if (tag && TAGS_VALIDOS.includes(tag)) q2 = q2.eq('tag', tag)
     if (lang && (lang === 'es' || lang === 'en')) q2 = q2.eq('idioma', lang)
-    if (q) q2 = q2.or(`titulo.ilike.%${q}%,descripcion.ilike.%${q}%`)
+    if (q) {
+      // Strip PostgREST delimiter characters and SQL LIKE wildcards (% matches everything, _ matches any char).
+      const safeQ = q.replace(/[,()%_]/g, ' ').trim()
+      if (safeQ) q2 = q2.or(`titulo.ilike.%${safeQ}%,descripcion.ilike.%${safeQ}%`)
+    }
     return q2
   }
 

@@ -75,6 +75,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isNewTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const cargandoRef = useRef(false)
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +101,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   }, [])
 
   const cargar = useCallback(async (tag: string, q: string) => {
+    cargandoRef.current = true
     setCargando(true)
     setError(null)
     try {
@@ -116,17 +118,18 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       setNoticias([])
       setHasMore(false)
     } finally {
+      cargandoRef.current = false
       setCargando(false)
       setNuevasCount(0)
     }
-  }, [buildUrl])
+  }, [buildUrl, idiomaActivo])
 
   const cargarMas = useCallback(async () => {
-    if (cargandoMas || !hasMore) return
+    if (cargandoMas || !hasMore || cargandoRef.current) return
     setCargandoMas(true)
     try {
       const res = await fetch(buildUrl(tagActivo, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
-      if (!res.ok) return
+      if (!res.ok) { setHasMore(false); return }
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
       if (items.length < LIMIT) setHasMore(false)
@@ -135,7 +138,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         return [...prev, ...items.filter(n => !ids.has(n.id))]
       })
       setOffset(prev => prev + items.length)
-    } catch { /* ignore */ } finally {
+    } catch { setHasMore(false) } finally {
       setCargandoMas(false)
     }
   }, [buildUrl, tagActivo, query, offset, idiomaActivo, cargandoMas, hasMore])
@@ -169,7 +172,8 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       }, (payload) => {
         const nueva = payload.new as Noticia
         if (nueva.factcheck_status !== 'aprobado') return
-        if (query && !nueva.titulo.toLowerCase().includes(query.toLowerCase())) return
+        if (idiomaActivo !== 'todos' && nueva.idioma !== idiomaActivo) return
+        if (query && !nueva.titulo.toLowerCase().includes(query.toLowerCase()) && !nueva.descripcion?.toLowerCase().includes(query.toLowerCase())) return
         setNoticias(prev => {
           if (prev.find(n => n.id === nueva.id)) return prev
           return [{ ...nueva, isNew: true, insertedAt: Date.now() }, ...prev]
@@ -185,7 +189,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       isNewTimers.current.forEach(clearTimeout)
       isNewTimers.current = []
     }
-  }, [tagActivo, query, supabase])
+  }, [tagActivo, query, supabase, idiomaActivo])
 
   const isNuevo = (n: Noticia) => n.isNew && n.insertedAt && Date.now() - n.insertedAt < 300_000
 

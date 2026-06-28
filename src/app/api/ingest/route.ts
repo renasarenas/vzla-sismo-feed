@@ -41,8 +41,8 @@ export async function GET(req: Request) {
 
   for (const fuente of FUENTES) {
     // USGS se maneja aparte (GeoJSON, no RSS)
-    if (fuente.url.includes('usgs.gov')) {
-      const counts = await ingestUSGS(supabase, fuente.nombre)
+    if (fuente.tipo === 'oficial') {
+      const counts = await ingestUSGS(supabase, fuente.nombre, fuente.url)
       procesadas += counts.procesadas
       aprobadas += counts.aprobadas
       continue
@@ -127,14 +127,11 @@ export async function GET(req: Request) {
 // Ingesta especial para datos sísmicos del USGS (GeoJSON)
 // ponytail: supabase passed in — module-level init fails at build time (no env vars)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function ingestUSGS(supabase: any, nombreFuente: string): Promise<{ procesadas: number; aprobadas: number }> {
+async function ingestUSGS(supabase: any, nombreFuente: string, url: string): Promise<{ procesadas: number; aprobadas: number }> {
   let procesadas = 0
   let aprobadas = 0
   try {
-    const res = await fetch(
-      'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
-      { signal: AbortSignal.timeout(8000) }
-    )
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
     if (!res.ok) throw new Error(`USGS error ${res.status}`)
     const data = await res.json()
 
@@ -148,9 +145,10 @@ async function ingestUSGS(supabase: any, nombreFuente: string): Promise<{ proces
       // (De Morgan: NOT A AND NOT B ≡ NOT(A OR B)); el || correcto exige ambas condiciones.
       if (!lugar.toLowerCase().includes('venezuela') || mag < 4.0) continue
 
-      const url: string = props.url ?? ''
-      if (!url) continue
+      const eventoUrl: string = props.url ?? ''
+      if (!eventoUrl) continue
       if (!props.time) continue
+      if (!feature.geometry?.coordinates) continue
       const titulo = `Sismo M${mag.toFixed(1)} — ${lugar}`
       const desc = `Magnitud ${mag}, profundidad ${feature.geometry?.coordinates?.[2] ?? '?'} km. Hora UTC: ${new Date(props.time).toISOString()}`
 
@@ -160,7 +158,7 @@ async function ingestUSGS(supabase: any, nombreFuente: string): Promise<{ proces
       const { data: existe, error: checkError } = await supabase
         .from('noticias')
         .select('id')
-        .eq('url', url)
+        .eq('url', eventoUrl)
         .maybeSingle()
 
       if (checkError) {
@@ -173,10 +171,10 @@ async function ingestUSGS(supabase: any, nombreFuente: string): Promise<{ proces
       const { error: insertError } = await supabase.from('noticias').insert({
         titulo,
         descripcion: desc,
-        url,
+        url: eventoUrl,
         fuente: nombreFuente,
         fuente_tipo: 'oficial',
-        idioma: 'en',
+        idioma: 'es',
         tag: 'sismo',
         factcheck_status: 'aprobado',
         factcheck_razon: 'Fuente oficial USGS',

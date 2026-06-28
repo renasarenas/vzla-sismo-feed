@@ -46,6 +46,7 @@ export function MapaSismos() {
       .from('noticias')
       .select('id, titulo, url, factcheck_confianza, lat, lng')
       .eq('fuente_tipo', 'oficial')
+      .eq('factcheck_status', 'aprobado')
       .not('lat', 'is', null)
       .limit(100)
       .then(({ data }) => { if (data) setSismos(data as Sismo[]) })
