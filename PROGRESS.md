@@ -4,11 +4,11 @@
 - Repository root: `/home/phylip/Downloads/vzla-sismo-feed`
 - Standard startup path: `./init.sh` (pwd, Node check, `npm ci`, `npx tsc --noEmit`, `npm run build`, PWA artifact check)
 - Standard verification path: `./init.sh` from a clean state. Last run: green.
-- Current branch: `fix/mapa-ssr-and-node-version` (2 commits ahead of master, no merge, no push per user instruction)
+- Current branch: `master` (Session 002 commit `040903f` on top of PR #14 merge `eba983c`; `fix/mapa-ssr-and-node-version` was merged in `d996682` before this session).
 - Node: v24.14.1 (local). Engine pin: `>=20.0.0` covers the team baseline.
 - npm: 11.14.1 (local). Team baseline: 11.13.0. Engine pin: `>=11.0.0`.
-- Agent skills installed at project scope (`./.agents/skills/`, gitignored). See Session 002.
-- Current highest-priority unfinished feature: branch `fix/mapa-ssr-and-node-version` ready to be reviewed/merged by the team.
+- Agent skills installed at project scope (`./.agents/skills/`, gitignored; `skills-lock.json` tracked). See Session 002.
+- Current highest-priority unfinished feature: pick a concrete frontend improvement using one of the installed skills as the source of truth.
 - Current blocker: none for the verification harness. Local Supabase not provisioned (`.env.local` uses placeholders so dev server boots without a real DB).
 
 ## Session Log
