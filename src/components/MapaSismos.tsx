@@ -1,9 +1,16 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { createClient } from '@supabase/supabase-js'
-import L from 'leaflet'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import type L from 'leaflet'
+
+// react-leaflet pulls in leaflet at module load, which touches `window` and breaks SSR.
+// We lazy-load each component with ssr:false so the chain never executes on the server.
+const MapContainer = dynamic(() => import('react-leaflet').then(m => m.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import('react-leaflet').then(m => m.TileLayer), { ssr: false })
+const Marker = dynamic(() => import('react-leaflet').then(m => m.Marker), { ssr: false })
+const Popup = dynamic(() => import('react-leaflet').then(m => m.Popup), { ssr: false })
 
 type Sismo = {
   id: string
@@ -22,7 +29,10 @@ export function MapaSismos() {
   const [sismos, setSismos] = useState<Sismo[]>([])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // Leaflet touches `window` at import time, so it must be loaded client-side only.
+    // The `import type` above is stripped at build time and keeps TS happy.
+    import('leaflet').then((mod) => {
+      const L = mod.default
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -30,7 +40,7 @@ export function MapaSismos() {
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
-    }
+    })
 
     supabase
       .from('noticias')

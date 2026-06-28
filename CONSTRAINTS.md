@@ -40,3 +40,4 @@
 - **No floating majors:** Major-version bumps (e.g. Next 14 -> 15, React 18 -> 19) require an explicit ADR-style note in `PROGRESS.md` and a green build before merge.
 - **No unverified packages:** Do not add a dependency that is not on the npm registry or that has no recent maintenance. Prefer packages already in use.
 - **Audit:** Run `npm audit --omit=dev` before tagging a release; high/critical findings MUST be resolved or explicitly accepted in `PROGRESS.md`.
+- **No `npm audit fix`:** Prohibited. Breaks the lockfile. Use only `npm audit --omit=dev`.
