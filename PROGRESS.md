@@ -9,6 +9,7 @@
 - npm: 11.14.1 (local). Team baseline: 11.13.0. Engine pin: `>=11.0.0`.
 - Agent skills installed at project scope (`./.agents/skills/`, gitignored; `skills-lock.json` tracked). See Session 002.
 - Frontend visual refresh applied on `feat/agent-skills-frontend`. See Session 003.
+- Current highest-priority unfinished feature: merge the five approved improvement branches (`feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`) into `master` after review.
 - Current highest-priority unfinished feature: user-approved map and feature improvements (dark tiles, territory+heatmap, zone filter, offline mode, tsunami alerts).
 - Current blocker: none for the verification harness. Local Supabase not provisioned (`.env.local` uses placeholders so dev server boots without a real DB; API routes now return fast degraded-mode empty responses in local dev).
 - Active feature branches (from `master`): `feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`.
@@ -17,6 +18,48 @@
 
 ### Session 008 — 2026-06-28
 - Date: 2026-06-28
+- Goal: implement the user-approved map and emergency-feed improvements across five independent feature branches.
+- Design/planning decisions (user-approved):
+  - Five independent feature branches created from `master`:
+    1. `feat/dark-map-tiles` — reactive Leaflet tile layer (OpenStreetMap light / CartoDB dark matter).
+    2. `feat/map-territory-heatmap` — Venezuela country outline GeoJSON + magnitude-based heatmap circles.
+    3. `feat/filter-by-zone` — Groq-extracted `zona` column + `?zona=` API filter + UI selector.
+    4. `feat/offline-mode` — improved Workbox caching + offline banner.
+    5. `feat/tsunami-alert` — USGS `tsunami` field capture + display in feed cards and map popups.
+- Completed:
+  - `feat/dark-map-tiles`: added `useDarkMode` hook via `MutationObserver` on `<html class="dark">`; switched `TileLayer` URL/attribution reactively. Verified with Puppeteer MCP screenshots in light and dark modes.
+  - `feat/map-territory-heatmap`: added lightweight (~24K) Venezuela outline GeoJSON under `public/data/venezuela.geojson`; rendered it as a `GeoJSON` layer; added heatmap circles sized/colored by parsed magnitude. Verified map outline renders correctly.
+  - `feat/filter-by-zone`: added `zona` column via `supabase/migrations/006_zona.sql`; extended Groq prompt to extract state; stored `zona` in ingest pipeline; added `?zona=` filter to `/api/feed`; added zone `<select>` to feed filter bar.
+  - `feat/offline-mode`: rewrote `next.config.js` `runtimeCaching` with `StaleWhileRevalidate` for feed/stats/pages and `CacheFirst` for static assets + map tiles; created `OfflineBanner` component and added it to `layout.tsx`.
+  - `feat/tsunami-alert`: added `tsunami` column via `supabase/migrations/005_tsunami.sql`; captured `props.tsunami` in `ingestUSGS`; exposed field in `/api/feed`; rendered alert badge in feed cards and map popups.
+- Verification:
+  - `./init.sh` green on every branch (typecheck + production build + PWA artifacts).
+  - Puppeteer MCP used to validate dark tile switching and Venezuela outline rendering.
+- Commits:
+  - `feat/dark-map-tiles`: `1d2879e` feat(map): add dark-mode tile layer
+  - `feat/dark-map-tiles`: `924ee3c` docs(progress): update current state and feature plan
+  - `feat/tsunami-alert`: `05a21cb` feat(tsunami): capture and display USGS tsunami alerts in feed and map
+  - `feat/map-territory-heatmap`: `f43b7c9` feat(map): add Venezuela territory outline and magnitude heatmap layer
+  - `feat/filter-by-zone`: `0b28629` feat(feed): extract and filter news by Venezuelan geographic zone
+  - `feat/offline-mode`: `1981a73` feat(pwa): improve offline caching and add offline banner
+- Files or artifacts updated:
+  - `src/components/MapaSismos.tsx` (dark tiles, territory, heatmap, tsunami popup)
+  - `public/data/venezuela.geojson`
+  - `src/lib/factchecker.ts` (zona extraction)
+  - `src/app/api/ingest/route.ts` (zona + tsunami storage)
+  - `src/app/api/feed/route.ts` (zona filter + tsunami field)
+  - `src/components/FeedNoticias.tsx` (zona selector + tsunami badge)
+  - `next.config.js` (PWA caching)
+  - `src/components/OfflineBanner.tsx`
+  - `src/app/layout.tsx` (OfflineBanner)
+  - `supabase/migrations/005_tsunami.sql`, `006_zona.sql`
+  - `PROGRESS.md`
+- Known risk or unresolved issue:
+  - Migration files `005_tsunami.sql` and `006_zona.sql` live on separate branches; before merging both, verify numeric ordering and avoid duplicate `005` files.
+  - `FeedNoticias.tsx` diverged significantly across branches; merging `feat/filter-by-zone` and `feat/tsunami-alert` will require resolving overlapping UI edits.
+  - Puppeteer MCP required manual Chrome install and `--no-sandbox` launch options.
+- Next best step:
+  - Merge branches one by one into `master`, resolving conflicts in `PROGRESS.md` and `FeedNoticias.tsx`/`MapaSismos.tsx` as needed.
 - Goal: plan and begin implementing user-requested map improvements and emergency-feed enhancements.
 - Design/planning decisions (user-approved):
   - Five independent feature branches created from `master`:

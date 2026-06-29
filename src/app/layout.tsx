@@ -3,6 +3,7 @@ import { Newsreader, Inter } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { NumerosEmergencia } from '@/components/NumerosEmergencia'
+import { OfflineBanner } from '@/components/OfflineBanner'
 
 // Editorial pairing: a screen-optimized news serif for the masthead and
 // headlines, a workhorse sans for UI, data and body copy.
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`dark ${serif.variable} ${sans.variable}`}>
       <body className="bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark min-h-screen font-sans antialiased">
+        <OfflineBanner />
         <Navbar />
         {children}
         <NumerosEmergencia />
