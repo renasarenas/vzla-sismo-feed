@@ -10,6 +10,7 @@
 - Agent skills installed at project scope (`./.agents/skills/`, gitignored; `skills-lock.json` tracked). See Session 002.
 - Frontend visual refresh applied on `feat/agent-skills-frontend`. See Session 003.
 - Current highest-priority unfinished feature: merge the five approved improvement branches (`feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`) into `master` after review.
+- Current highest-priority unfinished feature: user-approved map and feature improvements (dark tiles, territory+heatmap, zone filter, offline mode, tsunami alerts).
 - Current blocker: none for the verification harness. Local Supabase not provisioned (`.env.local` uses placeholders so dev server boots without a real DB; API routes now return fast degraded-mode empty responses in local dev).
 - Active feature branches (from `master`): `feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`.
 
@@ -59,6 +60,27 @@
   - Puppeteer MCP required manual Chrome install and `--no-sandbox` launch options.
 - Next best step:
   - Merge branches one by one into `master`, resolving conflicts in `PROGRESS.md` and `FeedNoticias.tsx`/`MapaSismos.tsx` as needed.
+- Goal: plan and begin implementing user-requested map improvements and emergency-feed enhancements.
+- Design/planning decisions (user-approved):
+  - Five independent feature branches created from `master`:
+    1. `feat/dark-map-tiles` — reactive Leaflet tile layer that switches between OpenStreetMap (light) and CartoDB dark matter (dark) via `MutationObserver` on `<html class="dark">`.
+    2. `feat/map-territory-heatmap` — overlay Venezuela state boundaries as GeoJSON polygons colored by seismic activity + a heatmap layer of USGS events.
+    3. `feat/filter-by-zone` — new `zona` column extracted by Groq, filterable via `?zona=` in `/api/feed` with UI selector in the feed sidebar.
+    4. `feat/offline-mode` — improved Workbox runtime caching and an offline banner.
+    5. `feat/tsunami-alert` — capture USGS `properties.tsunami`, store in new `tsunami` column, display alert in feed cards and map popups.
+- Completed in this session:
+  - Created the five branches from `master`.
+  - Implemented `feat/dark-map-tiles` in `src/components/MapaSismos.tsx`.
+  - Verified with `./init.sh`: typecheck green, production build green (6/6 static pages), PWA artifacts present.
+  - Puppeteer MCP screenshots captured confirming light and dark tile layers render correctly and switch in real time.
+- Commits:
+  - `feat/dark-map-tiles`: `1d2879e` feat(map): add dark-mode tile layer
+- Files or artifacts updated: `src/components/MapaSismos.tsx`, `PROGRESS.md`, `screenshots/*` (gitignored).
+- Known risk or unresolved issue:
+  - Puppeteer MCP required manual Chrome install (`npx puppeteer browsers install chrome@131.0.6778.204`) and `--no-sandbox` launch options to run in this environment.
+  - Four remaining feature branches are empty; next session will implement them in priority order.
+- Next best step:
+  - Continue with the next feature branch (suggested: `feat/tsunami-alert` or `feat/map-territory-heatmap`).
 
 ### Session 001 — 2026-06-27
 - Date: 2026-06-27

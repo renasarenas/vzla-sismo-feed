@@ -5,12 +5,24 @@ import dynamic from 'next/dynamic'
 import { createClient } from '@supabase/supabase-js'
 import type L from 'leaflet'
 
+const LIGHT_TILES = {
+  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}
+
+const DARK_TILES = {
+  url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+}
+
 // react-leaflet pulls in leaflet at module load, which touches `window` and breaks SSR.
 // We lazy-load each component with ssr:false so the chain never executes on the server.
 const MapContainer = dynamic(() => import('react-leaflet').then(m => m.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(m => m.TileLayer), { ssr: false })
 const Marker = dynamic(() => import('react-leaflet').then(m => m.Marker), { ssr: false })
 const Popup = dynamic(() => import('react-leaflet').then(m => m.Popup), { ssr: false })
+const GeoJSON = dynamic(() => import('react-leaflet').then(m => m.GeoJSON), { ssr: false })
+const Circle = dynamic(() => import('react-leaflet').then(m => m.Circle), { ssr: false })
 
 type Sismo = {
   id: string
@@ -21,12 +33,36 @@ type Sismo = {
   lng: number
 }
 
+function useDarkMode() {
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setDark(root.classList.contains('dark'))
+    update()
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.attributeName === 'class') {
+          update()
+          break
+        }
+      }
+    })
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return dark
+}
+
 export function MapaSismos() {
   const supabase = useMemo(() => createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   ), [])
   const [sismos, setSismos] = useState<Sismo[]>([])
+  const dark = useDarkMode()
 
   useEffect(() => {
     // Leaflet touches `window` at import time, so it must be loaded client-side only.
@@ -50,6 +86,11 @@ export function MapaSismos() {
       .not('lat', 'is', null)
       .limit(100)
       .then(({ data }) => { if (data) setSismos(data as Sismo[]) })
+
+    fetch('/data/venezuela.geojson')
+      .then(r => r.json())
+      .then(setOutline)
+      .catch(err => console.error('[mapa] Error cargando contorno:', err))
   }, [supabase])
 
   return (
@@ -70,9 +111,36 @@ export function MapaSismos() {
           style={{ height: '100%', width: '100%' }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={dark ? DARK_TILES.attribution : LIGHT_TILES.attribution}
+            url={dark ? DARK_TILES.url : LIGHT_TILES.url}
           />
+          {outline && (
+            <GeoJSON
+              data={outline}
+              style={{
+                color: '#CF1020',
+                weight: 2,
+                fillColor: '#CF1020',
+                fillOpacity: 0.04,
+              }}
+            />
+          )}
+          {sismos.map(s => {
+            const mag = parseMag(s.titulo)
+            return (
+              <Circle
+                key={`heat-${s.id}`}
+                center={[s.lat, s.lng]}
+                radius={Math.max(15000, mag * 15000)}
+                pathOptions={{
+                  color: magColor(mag),
+                  fillColor: magColor(mag),
+                  fillOpacity: 0.25,
+                  weight: 1,
+                }}
+              />
+            )
+          })}
           {sismos.map(s => (
             <Marker key={s.id} position={[s.lat, s.lng]}>
               <Popup>
