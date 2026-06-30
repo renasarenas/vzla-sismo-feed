@@ -75,7 +75,7 @@ export function Navbar() {
       <div className="h-1 bg-crisis-red" />
 
       <div className="border-b border-rule dark:border-rule-dark">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center gap-5 lg:gap-8">
           {/* Nameplate */}
           <Link href="/" className="flex items-center gap-3 group shrink-0">
             <Seismograph className="w-9 h-5 text-crisis-red shrink-0" />
@@ -89,8 +89,12 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav — editorial uppercase, underline active state */}
-          <nav className="hidden sm:flex items-center gap-7">
+          <span className="hidden sm:block h-6 w-px bg-rule dark:bg-rule-dark shrink-0" aria-hidden="true" />
+
+          {/* Desktop nav — editorial uppercase, underline active state. Anchored next to
+              the nameplate rather than floated to center; keeps the bar from reading empty
+              on wide viewports. */}
+          <nav className="hidden sm:flex items-center gap-7 shrink-0">
             {links.map(l => {
               const active = pathname === l.href
               return (
@@ -111,7 +115,16 @@ export function Navbar() {
             })}
           </nav>
 
-          <div className="flex items-center gap-1">
+          <div className="flex-1" />
+
+          {/* Portal target: page-level actions (alerts / export) render here on desktop.
+              Populated by FeedNoticias when mounted; stays empty (and invisible) on pages
+              that don't have feed actions, like /mapa and /stats. */}
+          <div id="navbar-feed-actions" className="hidden sm:flex items-center gap-5 shrink-0" />
+
+          <span className="hidden sm:block h-6 w-px bg-rule dark:bg-rule-dark shrink-0" aria-hidden="true" />
+
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={toggleDark}
               aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}

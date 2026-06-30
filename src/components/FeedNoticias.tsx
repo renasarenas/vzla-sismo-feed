@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@supabase/supabase-js'
 
 type Noticia = {
@@ -67,6 +68,116 @@ function SearchIcon() {
       <path d="m21 21-4.34-4.34" />
       <circle cx="11" cy="11" r="8" />
     </svg>
+  )
+}
+
+// Same outline-icon vocabulary as ThemeIcon/MenuIcon in Navbar.tsx:
+// 14px, stroke=currentColor, strokeWidth 2, round caps/joins, no fill.
+function BellIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 8a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2 7H4c.5-.5 2-2.5 2-7" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  )
+}
+
+function ExportIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 21h14" />
+      <path d="M12 17V4" />
+      <path d="m7 9 5-5 5 5" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+    </svg>
+  )
+}
+
+const HINT_ACCIONES_KEY = 'sismo-hint-acciones-v1'
+
+// One-time, dismissible feature hint pointing at the alerts/export controls.
+// Shown once per browser (localStorage flag), never reappears once closed.
+function HintAcciones() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem(HINT_ACCIONES_KEY)) setVisible(true)
+  }, [])
+
+  const dismiss = () => {
+    localStorage.setItem(HINT_ACCIONES_KEY, '1')
+    setVisible(false)
+  }
+
+  if (!visible) return null
+
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2.5 border-b border-rule dark:border-rule-dark bg-panel dark:bg-panel-dark">
+      <p className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tracking-wide leading-relaxed">
+        Activá <strong className="text-ink dark:text-ink-dark font-semibold">alertas</strong> para enterarte de réplicas al instante, o <strong className="text-ink dark:text-ink-dark font-semibold">exportá</strong> el boletín completo — los botones están arriba.
+      </p>
+      <button
+        onClick={dismiss}
+        aria-label="Cerrar aviso"
+        className="shrink-0 p-1 rounded text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark hover:bg-rule/50 dark:hover:bg-rule-dark/50 transition-colors"
+      >
+        <CloseIcon />
+      </button>
+    </div>
+  )
+}
+
+// Shared chrome for the alerts/export controls — border + hover-fill match the
+// existing rule/ink-muted gray tokens, same hover treatment as the theme-toggle
+// button in Navbar.tsx (hover:bg-rule/50).
+// flex-1 + justify-center: on mobile the two controls share their row at equal
+// width (an even pair instead of floating at opposite edges); on desktop the
+// portal slot sizes to content, so flex-1 is a no-op there.
+const ACTION_BUTTON_CLASS =
+  'flex flex-1 sm:flex-initial items-center justify-center gap-1.5 px-3.5 py-2.5 rounded border border-rule dark:border-rule-dark ' +
+  'font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark ' +
+  'hover:text-ink dark:hover:text-ink-dark hover:bg-rule/50 dark:hover:bg-rule-dark/50 transition-colors whitespace-nowrap'
+
+// Alerts + export controls. Rendered inline on mobile (its usual spot in the
+// live-status bar) and via portal into the navbar's action slot on desktop —
+// see #navbar-feed-actions in Navbar.tsx. Same handlers, two render targets.
+function FeedActionButtons({
+  notifPermiso,
+  onActivar,
+  exportado,
+  onExportar,
+}: {
+  notifPermiso: NotificationPermission | 'unsupported'
+  onActivar: () => void
+  exportado: boolean
+  onExportar: () => void
+}) {
+  return (
+    <>
+      {notifPermiso === 'default' && (
+        <button onClick={onActivar} className={ACTION_BUTTON_CLASS}>
+          <BellIcon />
+          Activar alertas
+        </button>
+      )}
+      {notifPermiso === 'granted' && (
+        <span className={`${ACTION_BUTTON_CLASS} hover:bg-transparent dark:hover:bg-transparent hover:text-ink-muted dark:hover:text-ink-muted-dark cursor-default`}>
+          <BellIcon />
+          Alertas activas
+        </span>
+      )}
+      <button onClick={onExportar} className={ACTION_BUTTON_CLASS}>
+        {exportado ? '✓' : <ExportIcon />}
+        {exportado ? 'Copiado' : 'Exportar'}
+      </button>
+    </>
   )
 }
 
@@ -154,6 +265,8 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const notifPermisoRef = useRef<NotificationPermission | 'unsupported'>('default')
   // Feature 6: export feedback
   const [exportado, setExportado] = useState(false)
+  // Desktop portal target — the navbar's action slot, found after mount.
+  const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -170,6 +283,10 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     } else {
       setNotifPermiso(Notification.permission)
     }
+  }, [])
+
+  useEffect(() => {
+    setActionsSlot(document.getElementById('navbar-feed-actions'))
   }, [])
 
   useEffect(() => {
@@ -321,7 +438,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   return (
     <>
       {/* Header compacto — una sola línea */}
-      <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <span className="w-2 h-2 rounded-full bg-crisis-red animate-pulse shrink-0" />
           <span className="font-mono text-[11px] tracking-widest text-crisis-red uppercase shrink-0">En vivo</span>
@@ -330,35 +447,38 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             Sismo Venezuela · 24 jun 2026
           </span>
         </div>
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center sm:justify-end gap-4 shrink-0">
           {statsLabel && (
             <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tracking-wide hidden sm:block tnum">
               {statsLabel}
             </span>
           )}
-          {/* Feature 5: notification button */}
-          {notifPermiso === 'default' && (
-            <button
-              onClick={() => Notification.requestPermission().then(p => setNotifPermiso(p))}
-              className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
-            >
-              🔔 Activar alertas
-            </button>
-          )}
-          {notifPermiso === 'granted' && (
-            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
-              🔔 Alertas activas
-            </span>
-          )}
-          {/* Feature 6: export button */}
-          <button
-            onClick={handleExportar}
-            className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
-          >
-            {exportado ? '✓ Copiado' : 'Exportar'}
-          </button>
+          {/* Mobile fallback — on desktop these render inside the navbar instead
+              (see #navbar-feed-actions portal below). The outer bar stacks to its
+              own row on mobile (flex-col), so this gets clean breathing room
+              instead of wrapping awkwardly under the live-status line. */}
+          <div className="sm:hidden flex items-center gap-3 w-full">
+            <FeedActionButtons
+              notifPermiso={notifPermiso}
+              onActivar={() => Notification.requestPermission().then(p => setNotifPermiso(p))}
+              exportado={exportado}
+              onExportar={handleExportar}
+            />
+          </div>
         </div>
       </div>
+
+      {actionsSlot && createPortal(
+        <FeedActionButtons
+          notifPermiso={notifPermiso}
+          onActivar={() => Notification.requestPermission().then(p => setNotifPermiso(p))}
+          exportado={exportado}
+          onExportar={handleExportar}
+        />,
+        actionsSlot
+      )}
+
+      <HintAcciones />
 
       {/* Barra de filtros */}
       <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 pt-3">
