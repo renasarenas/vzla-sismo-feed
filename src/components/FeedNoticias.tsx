@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@supabase/supabase-js'
 import { AnimatePresence, motion } from 'framer-motion'
+import { MapaVenezuelaSVG } from './MapaVenezuelaSVG'
 
 type Noticia = {
   id: string
@@ -218,19 +219,24 @@ function ResumenEvento() {
         <span>{open ? '▲' : '▼'}</span>
       </button>
       {open && (
-        <>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-3">
-            {RESUMEN_DATOS.map(({ num, label, red }) => (
-              <div key={label}>
-                <p className={`font-mono text-xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
-              </div>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 items-start">
+          <div className="flex flex-col justify-between h-full">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {RESUMEN_DATOS.map(({ num, label, red }) => (
+                <div key={label}>
+                  <p className={`font-mono text-xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-6">
+              Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
+            </p>
           </div>
-          <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-3">
-            Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
-          </p>
-        </>
+          <div className="w-full">
+            <MapaVenezuelaSVG />
+          </div>
+        </div>
       )}
     </div>
   )
