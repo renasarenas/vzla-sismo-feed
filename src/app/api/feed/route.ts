@@ -26,10 +26,24 @@ export async function GET(req: NextRequest) {
   const rawOffset = parseInt(searchParams.get('offset') ?? '0')
   const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset
 
+  if (searchParams.get('galeria') === 'true') {
+    const { data, error } = await supabase
+      .from('noticias')
+      .select('id, titulo, descripcion, url, fuente, tag, publicado_at, imagen_url')
+      .eq('factcheck_status', 'aprobado')
+      .not('imagen_url', 'is', null)
+      .order('publicado_at', { ascending: false })
+      .limit(8)
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    return Response.json({ noticias: data ?? [] }, {
+      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
+    })
+  }
+
   const base = () => {
     let q2 = supabase
       .from('noticias')
-      .select('id, titulo, descripcion, url, fuente, fuente_tipo, tag, idioma, publicado_at, factcheck_confianza, factcheck_status', { count: 'exact' })
+      .select('id, titulo, descripcion, url, fuente, fuente_tipo, tag, idioma, publicado_at, factcheck_confianza, factcheck_status, imagen_url', { count: 'exact' })
       .eq('factcheck_status', 'aprobado')
     if (tag && TAGS_VALIDOS.includes(tag)) q2 = q2.eq('tag', tag)
     if (lang && (lang === 'es' || lang === 'en')) q2 = q2.eq('idioma', lang)

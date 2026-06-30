@@ -14,6 +14,7 @@ type Noticia = {
   publicado_at: string
   factcheck_confianza: number
   factcheck_status: string
+  imagen_url: string | null
   isNew?: boolean
   insertedAt?: number
 }

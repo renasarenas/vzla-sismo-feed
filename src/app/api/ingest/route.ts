@@ -10,9 +10,38 @@ import { verificarNoticia } from '@/lib/factchecker'
 export const dynamic = 'force-dynamic'
 
 const parser = new Parser({
-  customFields: { item: ['media:content', 'enclosure'] },
+  customFields: { item: ['media:content', 'media:thumbnail', 'media:group', 'enclosure', 'content:encoded'] },
   requestOptions: { timeout: 8000 },
 })
+
+function extraerImagenRSS(item: Parser.Item): string | null {
+  // 1. enclosure
+  const enc = (item as any).enclosure
+  if (enc?.url && enc?.type?.startsWith('image/')) return enc.url
+  // 2. media:content
+  const mediaContent = (item as any)['media:content']
+  if (mediaContent) {
+    const arr = Array.isArray(mediaContent) ? mediaContent : [mediaContent]
+    const img = arr.find((m: any) => m?.$ && (!m.$.medium || m.$.medium === 'image'))
+    if (img?.$?.url) return img.$.url
+  }
+  // 3. media:thumbnail
+  const thumb = (item as any)['media:thumbnail']
+  if (thumb) {
+    const arr = Array.isArray(thumb) ? thumb : [thumb]
+    if (arr[0]?.$?.url) return arr[0].$.url
+  }
+  // 4. media:group
+  const groupContent = (item as any)['media:group']?.['media:content']
+  if (groupContent) {
+    const arr = Array.isArray(groupContent) ? groupContent : [groupContent]
+    if (arr[0]?.$?.url) return arr[0].$.url
+  }
+  // 5. primer <img> en HTML del contenido (solo URLs absolutas)
+  const html = (item as any)['content:encoded'] || item.content || ''
+  const src = html.match(/<img[^>]+src=["']([^"']+)["']/)?.[1] ?? null
+  return src?.startsWith('http') ? src : null
+}
 
 export async function GET(req: Request) {
   const supabase = createClient(
@@ -83,6 +112,7 @@ export async function GET(req: Request) {
 
         // 3. Fact-check con Claude
         const resultado = await verificarNoticia(titulo, desc, fuente.nombre)
+        const imagen_url = extraerImagenRSS(item)
 
         // 4. Guardar en Supabase (todas, incluyendo rechazadas para auditoría)
         const { error: insertError } = await supabase.from('noticias').insert({
@@ -97,6 +127,7 @@ export async function GET(req: Request) {
           factcheck_razon: resultado.razon,
           factcheck_confianza: resultado.confianza,
           publicado_at: pubDate.toISOString(),
+          imagen_url,
         })
 
         if (insertError) {
