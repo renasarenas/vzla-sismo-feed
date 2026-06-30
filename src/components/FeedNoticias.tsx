@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@supabase/supabase-js'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type Noticia = {
   id: string
@@ -492,13 +493,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                 <button
                   key={key}
                   onClick={() => setTagActivo(key)}
-                  className={`font-mono text-[10px] uppercase tracking-widest shrink-0 pb-2.5 border-b-2 transition-colors ${
+                  className={`relative font-mono text-[10px] uppercase tracking-widest shrink-0 pb-2.5 transition-colors ${
                     active
-                      ? `border-crisis-red ${text}`
-                      : 'border-transparent text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
+                      ? text
+                      : 'text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
                   }`}
                 >
                   {short}
+                  {active && (
+                    <motion.span
+                      layoutId="feed-tag-underline"
+                      className="absolute left-0 right-0 -bottom-px h-0.5 bg-crisis-red"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
                 </button>
               )
             })}
@@ -547,26 +555,39 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         )}
 
         {/* Banner nuevas noticias */}
-        {nuevasCount > 0 && (
-          <button
-            onClick={() => { setNuevasCount(0); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-            className="w-full mb-4 py-2 font-mono text-[11px] uppercase tracking-widest text-white bg-crisis-red hover:bg-crisis-red-dark transition-colors flex items-center justify-center gap-2"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            {nuevasCount} nuevo{nuevasCount > 1 ? 's' : ''} reporte{nuevasCount > 1 ? 's' : ''} — ver arriba
-          </button>
-        )}
+        <AnimatePresence>
+          {nuevasCount > 0 && (
+            <motion.button
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              onClick={() => { setNuevasCount(0); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+              className="w-full overflow-hidden py-2 font-mono text-[11px] uppercase tracking-widest text-white bg-crisis-red hover:bg-crisis-red-dark transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              {nuevasCount} nuevo{nuevasCount > 1 ? 's' : ''} reporte{nuevasCount > 1 ? 's' : ''} — ver arriba
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {error && <EmptyState error />}
 
         {/* Grid de cards */}
         {cargando ? (
+          // Mirrors the real card (header row + title + description) so the grid
+          // doesn't reflow when the feed arrives.
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] border-l-[#333] p-4 animate-pulse">
-                <div className="h-2.5 w-20 bg-[#2A2A2A] mb-3" />
-                <div className="h-5 w-full bg-[#2A2A2A] mb-2" />
-                <div className="h-4 w-3/4 bg-[#2A2A2A]" />
+              <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] p-4">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="h-2.5 w-16 rounded skeleton" />
+                  <div className="h-2.5 w-24 rounded skeleton" />
+                </div>
+                <div className="h-4 w-full rounded skeleton mb-2" />
+                <div className="h-4 w-4/5 rounded skeleton mb-3" />
+                <div className="h-3 w-full rounded skeleton mb-1.5" />
+                <div className="h-3 w-2/3 rounded skeleton" />
               </div>
             ))}
           </div>
@@ -575,14 +596,19 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {noticias.map(n => {
+              <AnimatePresence initial={false}>
+              {noticias.map((n, i) => {
                 const meta = TAG_META[n.tag]
                 return (
-                  <a
+                  <motion.a
                     key={n.id}
                     href={n.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.03 } }}
+                    exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
                     className={`
                       group block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-none
                       border-l-[3px] ${meta?.border ?? 'border-l-[#444]'}
@@ -663,9 +689,10 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                         {copiadoId === n.id ? '✓' : '🔗'}
                       </button>
                     </div>
-                  </a>
+                  </motion.a>
                 )
               })}
+              </AnimatePresence>
             </div>
 
             {/* Sentinel de infinite scroll */}
@@ -682,8 +709,15 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       </div>
 
       {/* Feature 3: toast de réplica (fixed) */}
-      {replicaToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[90vw] max-w-md bg-[#EAB308] animate-fade-in">
+      <AnimatePresence>
+        {replicaToast && (
+        <motion.div
+          initial={{ opacity: 0, y: 24, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          exit={{ opacity: 0, y: 24, x: '-50%' }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="fixed bottom-24 left-1/2 z-50 w-[90vw] max-w-md bg-[#EAB308]"
+        >
           <div className="flex items-start justify-between gap-3 p-3">
             <div className="min-w-0">
               <p className="font-mono text-[11px] uppercase tracking-widest font-bold text-black">
@@ -700,8 +734,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
               ✕
             </button>
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

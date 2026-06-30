@@ -18,6 +18,16 @@
     @apply bg-paper-dark text-ink-dark;
   }
 
+  /* Skeleton theming — base fill + sweeping shine, per color scheme. */
+  :root {
+    --skeleton-base: #E2E1DC;
+    --skeleton-shine: rgba(255, 255, 255, 0.6);
+  }
+  .dark {
+    --skeleton-base: #2A2B31;
+    --skeleton-shine: rgba(255, 255, 255, 0.06);
+  }
+
   /* Editorial display copy uses the news serif. */
   .font-serif {
     font-feature-settings: 'kern' 1, 'liga' 1, 'onum' 1;
@@ -45,6 +55,34 @@
   .tnum {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
+  }
+
+  /* Loading placeholder: a muted fill with a shine sweeping across it. Theme-aware
+     via the --skeleton-* vars. The prefers-reduced-motion rule below freezes the
+     sweep off-screen, leaving a static muted block. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--skeleton-base);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--skeleton-shine),
+      transparent
+    );
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
   }
 }
 

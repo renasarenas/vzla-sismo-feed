@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
 
 // Signature motif: a small seismogram trace. Used in the masthead and hero.
 function Seismograph({ className = '' }: { className?: string }) {
@@ -109,7 +110,13 @@ export function Navbar() {
                   aria-current={active ? 'page' : undefined}
                 >
                   {l.label}
-                  {active && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-crisis-red" />}
+                  {active && (
+                    <motion.span
+                      layoutId="navbar-active-underline"
+                      className="absolute left-0 right-0 -bottom-px h-0.5 bg-crisis-red"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
                 </Link>
               )
             })}
@@ -125,46 +132,58 @@ export function Navbar() {
           <span className="hidden sm:block h-6 w-px bg-rule dark:bg-rule-dark shrink-0" aria-hidden="true" />
 
           <div className="flex items-center gap-1 shrink-0">
-            <button
+            <motion.button
               onClick={toggleDark}
               aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               className="p-2 rounded text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark hover:bg-rule/50 dark:hover:bg-rule-dark/50 transition-colors"
+              whileTap={{ scale: 0.85, rotate: 15 }}
             >
               <ThemeIcon dark={dark} />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               className="sm:hidden p-2 rounded text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark"
               onClick={() => setMenuOpen(o => !o)}
               aria-expanded={menuOpen}
               aria-label="Menú"
+              whileTap={{ scale: 0.85 }}
             >
               <MenuIcon open={menuOpen} />
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      {menuOpen && (
-        <div className="sm:hidden border-b border-rule dark:border-rule-dark bg-paper dark:bg-paper-dark px-4 py-2">
-          {links.map(l => {
-            const active = pathname === l.href
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center text-eyebrow uppercase py-3 border-b border-rule/60 dark:border-rule-dark/60 last:border-0 ${
-                  active ? 'text-crisis-red' : 'text-ink-muted dark:text-ink-muted-dark'
-                }`}
-                aria-current={active ? 'page' : undefined}
-              >
-                {l.label}
-              </Link>
-            )
-          })}
-        </div>
-      )}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="sm:hidden border-b border-rule dark:border-rule-dark bg-paper dark:bg-paper-dark px-4 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <div className="py-2">
+              {links.map(l => {
+                const active = pathname === l.href
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center text-eyebrow uppercase py-3 border-b border-rule/60 dark:border-rule-dark/60 last:border-0 ${
+                      active ? 'text-crisis-red' : 'text-ink-muted dark:text-ink-muted-dark'
+                    }`}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    {l.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

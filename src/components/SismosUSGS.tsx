@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type Earthquake = {
   id: string
@@ -94,38 +95,45 @@ export function SismosUSGS() {
           <p className="text-small text-gray-500 dark:text-gray-400">El servicio de USGS no reporta actividad en la región en este momento.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {sismos.map((s) => {
-            const style = getMagStyle(s.properties.mag)
-            return (
-              <a
-                key={s.id}
-                href={s.properties.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start sm:items-center p-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all"
-              >
-                <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg shrink-0 ${style.bg} ${style.text}`}>
-                  <span className="text-lg font-bold leading-none">{s.properties.mag.toFixed(1)}</span>
-                  <span className="text-[9px] font-medium uppercase tracking-wide mt-0.5">{style.label}</span>
-                </div>
-                <div className="ml-4 flex-1 min-w-0">
-                  <p className="text-small font-medium text-gray-900 dark:text-white leading-snug truncate">
-                    {s.properties.place}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                    <span className="text-caption text-gray-500 dark:text-gray-400">
-                      Profundidad: {s.geometry.coordinates[2]} km
-                    </span>
-                    <span className="text-caption text-gray-400 dark:text-gray-500">
-                      {tiempoRelativo(s.properties.time)}
-                    </span>
+        <motion.div className="space-y-3" initial="hidden" animate="visible">
+          <AnimatePresence initial={false}>
+            {sismos.map((s, i) => {
+              const style = getMagStyle(s.properties.mag)
+              return (
+                <motion.a
+                  key={s.id}
+                  href={s.properties.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  layout
+                  initial={{ opacity: 0, y: -16 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.04 } }}
+                  exit={{ opacity: 0, x: 40, transition: { duration: 0.15 } }}
+                  whileHover={{ y: -2 }}
+                  className="flex items-start sm:items-center p-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-colors"
+                >
+                  <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg shrink-0 ${style.bg} ${style.text}`}>
+                    <span className="text-lg font-bold leading-none">{s.properties.mag.toFixed(1)}</span>
+                    <span className="text-[9px] font-medium uppercase tracking-wide mt-0.5">{style.label}</span>
                   </div>
-                </div>
-              </a>
-            )
-          })}
-        </div>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="text-small font-medium text-gray-900 dark:text-white leading-snug truncate">
+                      {s.properties.place}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                      <span className="text-caption text-gray-500 dark:text-gray-400">
+                        Profundidad: {s.geometry.coordinates[2]} km
+                      </span>
+                      <span className="text-caption text-gray-400 dark:text-gray-500">
+                        {tiempoRelativo(s.properties.time)}
+                      </span>
+                    </div>
+                  </div>
+                </motion.a>
+              )
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
     </main>
   )

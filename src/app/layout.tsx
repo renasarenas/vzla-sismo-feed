@@ -43,8 +43,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`dark ${serif.variable} ${sans.variable}`}>
-      <body className="bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark min-h-screen font-sans antialiased">
+    // Browser extensions (ad blockers, antivirus DOM injectors, LanguageTool, etc.) add
+    // attributes to <html> and <body> before React hydrates — on either element, not just
+    // one. Without suppressHydrationWarning on both, that mismatch makes React discard and
+    // rebuild the whole tree, which can catch the Leaflet map mid-mount and crash it.
+    <html lang="es" className={`dark ${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <body
+        className="bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark min-h-screen font-sans antialiased"
+        suppressHydrationWarning
+      >
         <OfflineBanner />
         <Navbar />
         {children}
