@@ -231,7 +231,7 @@ function ResumenEvento() {
               Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
             </p>
           </div>
-          <div className="lg:col-span-4 w-full max-w-[325px] mx-auto">
+          <div className="lg:col-span-4 w-full max-w-[375px] mx-auto">
             <MapaVenezuelaSVG />
           </div>
         </div>
