@@ -19,73 +19,105 @@ type Organizacion = {
   nombre: string
   descripcion: string
   url?: string
-  urlLabel?: string
 }
 
 const ORGANIZACIONES: Organizacion[] = [
   {
-    nombre: 'World Central Kitchen (Chef José Andrés)',
-    descripcion: 'Ya desplegada en Venezuela distribuyendo comidas calientes a familias afectadas y rescatistas. El chef José Andrés comprometió un millón de dólares de su fundación para esta emergencia.',
+    nombre: 'World Central Kitchen',
+    descripcion: 'Chef José Andrés — ya desplegada en Venezuela distribuyendo comidas calientes a familias afectadas y rescatistas. Comprometió un millón de dólares de su fundación.',
     url: 'https://donate.wck.org/team/835442',
-    urlLabel: 'donate.wck.org/team/835442',
   },
   {
     nombre: 'Cáritas Venezuela',
-    descripcion: 'Con décadas de presencia en el país, activó un despliegue de emergencia inmediato a través de su red diocesana, con centros de acopio en varias zonas afectadas. Cáritas España movilizó 300.000 euros específicamente para esta respuesta.',
+    descripcion: 'Décadas de presencia en el país. Despliegue de emergencia inmediato vía su red diocesana, con centros de acopio en varias zonas afectadas.',
     url: 'https://caritas.org.ve',
-    urlLabel: 'caritas.org.ve',
   },
   {
-    nombre: 'Global Empowerment Mission (GEM)',
-    descripcion: 'Movilizada en respuesta al terremoto en alianza con I Love Venezuela, su socio local de largo plazo en el país.',
+    nombre: 'Global Empowerment Mission',
+    descripcion: 'Movilizada en alianza con I Love Venezuela, su socio local de largo plazo en el país.',
     url: 'https://globalempowermentmission.org/mission/venezuela-earthquakes',
-    urlLabel: 'globalempowermentmission.org',
   },
   {
     nombre: 'Hogar Bambi Venezuela',
-    descripcion: 'Organización que trabaja con niñas, niños y adolescentes en Venezuela. Acepta donaciones en dólares.',
+    descripcion: 'Trabaja con niñas, niños y adolescentes en Venezuela. Acepta donaciones en dólares.',
     url: 'https://hogarbambi.org/donar-ahora',
-    urlLabel: 'hogarbambi.org/donar-ahora',
   },
   {
-    nombre: 'Fundación AmCham (Cámara Venezolano-Americana)',
-    descripcion: 'Fondo específico para el terremoto con cobro vía Stripe, pensado para donar desde fuera de Venezuela.',
+    nombre: 'Fundación AmCham',
+    descripcion: 'Cámara Venezolano-Americana — fondo específico para el terremoto, cobro vía Stripe desde fuera de Venezuela.',
   },
   {
-    nombre: 'We Love Foundation / I Love Venezuela',
-    descripcion: 'Organización en Miami que recopila fondos y los distribuye a grupos verificados en Venezuela. Canaliza kits médicos, agua y comida.',
+    nombre: 'We Love Foundation',
+    descripcion: 'I Love Venezuela — con base en Miami, distribuye fondos a grupos verificados: kits médicos, agua y comida.',
   },
   {
-    nombre: 'GoFundMe — Emergency Relief for Venezuela',
-    descripcion: 'Campaña de recaudación abierta para asistencia de emergencia.',
+    nombre: 'GoFundMe',
+    descripcion: 'Emergency Relief for Venezuela — campaña de recaudación abierta para asistencia de emergencia.',
     url: 'https://gofundme.com',
-    urlLabel: 'gofundme.com',
   },
   {
-    nombre: 'JustGiving — Healing Venezuela',
-    descripcion: 'Campaña para apoyar hospitales, médicos y servicios de rescate en Venezuela.',
+    nombre: 'JustGiving',
+    descripcion: 'Healing Venezuela — apoya hospitales, médicos y servicios de rescate en el país.',
     url: 'https://justgiving.com/campaign/venezuelaearthquake2026',
-    urlLabel: 'justgiving.com/campaign/venezuelaearthquake2026',
   },
   {
-    nombre: 'People in Need — SOS Venezuela',
-    descripcion: 'ONG internacional con apelación dedicada al terremoto.',
+    nombre: 'People in Need',
+    descripcion: 'SOS Venezuela — ONG internacional con apelación dedicada al terremoto.',
     url: 'https://peopleinneed.net',
-    urlLabel: 'peopleinneed.net',
   },
   {
-    nombre: 'ACNUR / USA for UNHCR',
-    descripcion: 'La Agencia de la ONU para Refugiados está activa en Venezuela. En algunos períodos ha ofrecido triplicar donaciones mensuales.',
+    nombre: 'ACNUR — USA for UNHCR',
+    descripcion: 'La Agencia de la ONU para Refugiados está activa en Venezuela. En algunos períodos ofreció triplicar donaciones mensuales.',
     url: 'https://unhcr.org',
-    urlLabel: 'unhcr.org',
   },
   {
     nombre: 'Somos AlumnUSB',
     descripcion: 'Comunidad de egresados de la USB canalizando apoyo de forma ágil y directa hacia familias afectadas.',
     url: 'https://alumnusb.org/ayuda-tras-terremoto/',
-    urlLabel: 'alumnusb.org/ayuda-tras-terremoto',
   },
 ]
+
+function ArrowIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 17 17 7" /><path d="M7 7h10v10" />
+    </svg>
+  )
+}
+
+function OrgCard({ org }: { org: Organizacion }) {
+  const base = `
+    group relative block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
+    border-l-[3px] border-l-crisis-red p-5 h-full transition-colors
+  `
+  if (!org.url) {
+    return (
+      <div className={`${base} opacity-80`}>
+        <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-base mb-1.5 pr-5">{org.nombre}</h3>
+        <p className="text-small text-ink-muted dark:text-ink-muted-dark">{org.descripcion}</p>
+        <span className="absolute top-5 right-4 font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
+          Sin link
+        </span>
+      </div>
+    )
+  }
+  return (
+    <a
+      href={org.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${base} hover:bg-[#1A1A1A] active:bg-[#1A1A1A]`}
+    >
+      <span className="absolute top-5 right-4 text-ink-muted dark:text-ink-muted-dark opacity-0 group-hover:opacity-100 group-active:opacity-100 group-hover:text-crisis-red transition-opacity">
+        <ArrowIcon />
+      </span>
+      <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-base mb-1.5 pr-5 group-hover:text-crisis-red transition-colors">
+        {org.nombre}
+      </h3>
+      <p className="text-small text-ink-muted dark:text-ink-muted-dark">{org.descripcion}</p>
+    </a>
+  )
+}
 
 export default function DonarPage() {
   return (
@@ -94,47 +126,31 @@ export default function DonarPage() {
         <p className="text-eyebrow uppercase text-crisis-red mb-3">Cómo ayudar</p>
         <h1 className="font-serif text-display text-ink dark:text-ink-dark">Guía para donar</h1>
         <p className="text-lead text-ink-muted dark:text-ink-muted-dark mt-3 max-w-prose">
-          Insumos más necesitados y organizaciones verificadas que están canalizando ayuda a Venezuela tras el sismo del 24 de junio de 2026.
+          Insumos más necesitados y organizaciones verificadas que están canalizando ayuda a Venezuela tras el sismo del 24 de junio de 2026. Tocá cualquier tarjeta para abrir la página oficial.
         </p>
       </header>
 
       {/* Insumos */}
       <section className="mb-14">
         <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Insumos más necesitados</h2>
-        <div className="border-t border-ink dark:border-ink-dark">
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6">
-            {INSUMOS.map(item => (
-              <li
-                key={item}
-                className="flex items-center gap-2.5 py-3 border-b border-rule dark:border-rule-dark text-small text-ink dark:text-ink-dark"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-crisis-red shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {INSUMOS.map(item => (
+            <div
+              key={item}
+              className="flex items-center gap-2.5 bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] border-l-crisis-red px-4 py-3.5"
+            >
+              <span className="text-small text-ink dark:text-ink-dark leading-snug">{item}</span>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Donaciones monetarias */}
       <section className="mb-14">
         <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Dónde donar dinero</h2>
-        <div className="border-t border-ink dark:border-ink-dark">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {ORGANIZACIONES.map(org => (
-            <div key={org.nombre} className="py-5 border-b border-rule dark:border-rule-dark">
-              <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-lg mb-1.5">{org.nombre}</h3>
-              <p className="text-small text-ink-muted dark:text-ink-muted-dark max-w-prose mb-2">{org.descripcion}</p>
-              {org.url && (
-                <a
-                  href={org.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-[11px] uppercase tracking-widest text-crisis-red hover:underline"
-                >
-                  {org.urlLabel ?? org.url} →
-                </a>
-              )}
-            </div>
+            <OrgCard key={org.nombre} org={org} />
           ))}
         </div>
       </section>
