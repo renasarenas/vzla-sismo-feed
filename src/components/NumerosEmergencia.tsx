@@ -143,196 +143,177 @@ function PlatformCard({ href, icon, title, description, badgeColor = 'blue' }: {
 
 export function NumerosEmergencia() {
   const [isOpen, setIsOpen] = useState(false)
-  const btnRef = useRef<HTMLButtonElement>(null)
 
-  // Attach click listener via native DOM to bypass React synthetic event issues
-  useEffect(() => {
-    const btn = btnRef.current
-    if (!btn) return
-    const open = () => setIsOpen(true)
-    btn.addEventListener('click', open)
-    return () => btn.removeEventListener('click', open)
-  }, [])
+  const open = () => setIsOpen(true)
+  const close = () => setIsOpen(false)
 
   // Scroll lock when modal is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  // Keydown listener for Esc key to close modal
+  // Esc key to close modal
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false)
-      }
-    }
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown)
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
   return (
     <>
-      {!isOpen && (
-        <button
-          ref={btnRef}
-          className="fixed bottom-5 right-5 bg-crisis-red hover:bg-crisis-red-light active:scale-95 hover:-translate-y-0.5 text-white px-5 py-3 shadow-lift z-[60] flex items-center gap-2.5 text-eyebrow uppercase rounded-sm border border-crisis-red-dark/20 transition-all duration-150"
-        >
-          <PhoneIcon />
-          <span className="hidden sm:inline">Emergencias</span>
-        </button>
-      )}
+      {/* FAB — always in DOM, hidden via display when modal is open */}
+      <button
+        onClick={open}
+        style={{ display: isOpen ? 'none' : 'flex' }}
+        className="fixed bottom-5 right-5 bg-crisis-red hover:bg-crisis-red-light active:scale-95 hover:-translate-y-0.5 text-white px-5 py-3 shadow-lift z-[60] items-center gap-2.5 text-eyebrow uppercase rounded-sm border border-crisis-red-dark/20 transition-all duration-150"
+      >
+        <PhoneIcon />
+        <span className="hidden sm:inline">Emergencias</span>
+      </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-          {/* Backdrop / Velo Translúcido */}
-          <div
-            onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-ink/50 backdrop-blur-md transition-opacity duration-200 animate-fade-in"
-          />
+      {/* Modal overlay — always in DOM, hidden via display when closed */}
+      <div
+        style={{ display: isOpen ? 'flex' : 'none' }}
+        className="fixed inset-0 z-[1100] items-end sm:items-center justify-center p-0 sm:p-4"
+      >
+        {/* Backdrop */}
+        <div
+          onClick={close}
+          className="absolute inset-0 bg-ink/50 backdrop-blur-md"
+        />
 
-          {/* Modal Content */}
-          <div
-            className="relative bg-panel dark:bg-panel-dark w-full sm:max-w-lg h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-lg sm:rounded-sm shadow-2xl flex flex-col border-t-2 border-crisis-red overflow-hidden z-10 animate-pc-slide-up"
-          >
-            {/* Drag Handle indicator for mobile bottom sheet */}
-            <div className="flex justify-center py-2.5 sm:hidden shrink-0 bg-panel dark:bg-panel-dark">
-              <div className="w-12 h-1 bg-rule dark:bg-rule-dark rounded-full opacity-60" />
+        {/* Modal Content */}
+        <div className="relative bg-panel dark:bg-panel-dark w-full sm:max-w-lg h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-lg sm:rounded-sm shadow-2xl flex flex-col border-t-2 border-crisis-red overflow-hidden z-10 animate-pc-slide-up">
+          {/* Drag Handle indicator for mobile */}
+          <div className="flex justify-center py-2.5 sm:hidden shrink-0 bg-panel dark:bg-panel-dark">
+            <div className="w-12 h-1 bg-rule dark:bg-rule-dark rounded-full opacity-60" />
+          </div>
+
+          {/* Header */}
+          <div className="flex items-start justify-between p-5 border-b border-rule dark:border-rule-dark shrink-0 bg-panel dark:bg-panel-dark">
+            <div>
+              <p className="text-eyebrow uppercase text-crisis-red mb-1.5 flex items-center gap-2 font-semibold">
+                <WarningIcon />
+                Directorio de emergencia
+              </p>
+              <h2 className="font-serif text-headline text-ink dark:text-ink-dark">Líneas oficiales de atención</h2>
+              <p className="text-caption text-ink-muted dark:text-ink-muted-dark mt-1">Toca un número para llamar directamente</p>
             </div>
+            <button
+              onClick={close}
+              className="p-2 text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark hover:bg-paper dark:hover:bg-paper-dark rounded-sm transition-colors border border-transparent hover:border-rule dark:hover:border-rule-dark"
+              aria-label="Cerrar directorio"
+            >
+              <CloseIcon />
+            </button>
+          </div>
 
-            {/* Header */}
-            <div className="flex items-start justify-between p-5 border-b border-rule dark:border-rule-dark shrink-0 bg-panel dark:bg-panel-dark">
-              <div>
-                <p className="text-eyebrow uppercase text-crisis-red mb-1.5 flex items-center gap-2 font-semibold">
-                  <WarningIcon />
-                  Directorio de emergencia
-                </p>
-                <h2 className="font-serif text-headline text-ink dark:text-ink-dark">Líneas oficiales de atención</h2>
-                <p className="text-caption text-ink-muted dark:text-ink-muted-dark mt-1">Toca un número para llamar directamente</p>
+          {/* Content Area */}
+          <div className="p-5 overflow-y-auto space-y-6 bg-panel dark:bg-panel-dark">
+            {/* Líneas Generales */}
+            <section className="space-y-3">
+              <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Líneas Generales</h3>
+              <div className="grid grid-cols-2 gap-2.5">
+                <NumberCard href="tel:911" label="Movistar" number="911" variant="emergency" />
+                <NumberCard href="tel:171" label="CANTV fijos" number="171" variant="emergency" />
+                <NumberCard href="tel:112" label="Digitel" number="112" variant="emergency" />
+                <NumberCard href="tel:*1" label="Movilnet" number="*1" variant="emergency" />
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark hover:bg-paper dark:hover:bg-paper-dark rounded-sm transition-colors border border-transparent hover:border-rule dark:hover:border-rule-dark"
-                aria-label="Cerrar directorio"
-              >
-                <CloseIcon />
-              </button>
-            </div>
+            </section>
 
-            {/* Content Area */}
-            <div className="p-5 overflow-y-auto space-y-6 bg-panel dark:bg-panel-dark">
-              {/* Operadoras / Líneas Generales */}
-              <section className="space-y-3">
-                <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Líneas Generales</h3>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <NumberCard href="tel:911" label="Movistar" number="911" variant="emergency" />
-                  <NumberCard href="tel:171" label="CANTV fijos" number="171" variant="emergency" />
-                  <NumberCard href="tel:112" label="Digitel" number="112" variant="emergency" />
-                  <NumberCard href="tel:*1" label="Movilnet" number="*1" variant="emergency" />
+            <hr className="border-rule dark:border-rule-dark" />
+
+            {/* Protección Civil */}
+            <section className="space-y-3">
+              <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Protección Civil</h3>
+              <div className="space-y-2.5">
+                <NumberRow href="tel:08005588427" label="Nacionales (Central)" number="0800-5588427" />
+                <NumberRow href="tel:04242075335" label="La Guaira" number="0424-2075335" />
+                <MultiNumberCard label="Caracas (Central)" numbers={[
+                  { number: "(0212) 575-1823", href: "tel:02125751823" },
+                  { number: "(0212) 631-8662", href: "tel:02126318662" }
+                ]} />
+                <MultiNumberCard label="Caracas (Libertador)" numbers={[
+                  { number: "0800-725-3661", href: "tel:08007253661" },
+                  { number: "(0212) 541-0830", href: "tel:02125410830" }
+                ]} />
+              </div>
+            </section>
+
+            <hr className="border-rule dark:border-rule-dark" />
+
+            {/* Bomberos */}
+            <section className="space-y-3">
+              <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Bomberos</h3>
+              <div className="space-y-2.5">
+                <MultiNumberCard label="Caracas Metropolitana" numbers={[
+                  { number: "(0212) 545-4545", href: "tel:02125454545" },
+                  { number: "(0212) 542-0243", href: "tel:02125420243" }
+                ]} />
+                <MultiNumberCard label="La Guaira" numbers={[
+                  { number: "(0212) 332-7620", href: "tel:02123327620" },
+                  { number: "(0212) 331-0445", href: "tel:02123310445" }
+                ]} />
+              </div>
+            </section>
+
+            <hr className="border-rule dark:border-rule-dark" />
+
+            {/* Seguridad y Reportes */}
+            <section className="space-y-3">
+              <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Seguridad y Reportes</h3>
+              <div className="space-y-2.5">
+                <NumberRow href="tel:08007654242" label="Policía Nacional" number="0800-765-4242" />
+                <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-3.5 rounded-sm flex flex-col gap-2.5">
+                  <span className="text-small font-sans text-ink/80 dark:text-ink-dark/80 font-medium">FUNVISIS — Reporte de sismos</span>
+                  <a
+                    href="tel:08008362567"
+                    className="block text-center py-2 bg-paper dark:bg-paper-dark border border-rule dark:border-rule-dark rounded-sm text-small font-serif font-bold text-ink dark:text-ink-dark hover:border-crisis-red/20 dark:hover:border-crisis-red/30 hover:bg-panel dark:hover:bg-panel-dark transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+                  >
+                    0-800-TEMBLOR (0800-8362567)
+                  </a>
                 </div>
-              </section>
+              </div>
+            </section>
 
-              <hr className="border-rule dark:border-rule-dark" />
+            <hr className="border-rule dark:border-rule-dark" />
 
-              {/* Protección Civil */}
-              <section className="space-y-3">
-                <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Protección Civil</h3>
-                <div className="space-y-2.5">
-                  <NumberRow href="tel:08005588427" label="Nacionales (Central)" number="0800-5588427" />
-                  <NumberRow href="tel:04242075335" label="La Guaira" number="0424-2075335" />
-                  <MultiNumberCard label="Caracas (Central)" numbers={[
-                    { number: "(0212) 575-1823", href: "tel:02125751823" },
-                    { number: "(0212) 631-8662", href: "tel:02126318662" }
-                  ]} />
-                  <MultiNumberCard label="Caracas (Libertador)" numbers={[
-                    { number: "0800-725-3661", href: "tel:08007253661" },
-                    { number: "(0212) 541-0830", href: "tel:02125410830" }
-                  ]} />
-                </div>
-              </section>
-
-              <hr className="border-rule dark:border-rule-dark" />
-
-              {/* Bomberos */}
-              <section className="space-y-3">
-                <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Bomberos</h3>
-                <div className="space-y-2.5">
-                  <MultiNumberCard label="Caracas Metropolitana" numbers={[
-                    { number: "(0212) 545-4545", href: "tel:02125454545" },
-                    { number: "(0212) 542-0243", href: "tel:02125420243" }
-                  ]} />
-                  <MultiNumberCard label="La Guaira" numbers={[
-                    { number: "(0212) 332-7620", href: "tel:02123327620" },
-                    { number: "(0212) 331-0445", href: "tel:02123310445" }
-                  ]} />
-                </div>
-              </section>
-
-              <hr className="border-rule dark:border-rule-dark" />
-
-              {/* Seguridad y Sismos */}
-              <section className="space-y-3">
-                <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Seguridad y Reportes</h3>
-                <div className="space-y-2.5">
-                  <NumberRow href="tel:08007654242" label="Policía Nacional" number="0800-765-4242" />
-                  <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-3.5 rounded-sm flex flex-col gap-2.5">
-                    <span className="text-small font-sans text-ink/80 dark:text-ink-dark/80 font-medium">FUNVISIS — Reporte de sismos</span>
-                    <a
-                      href="tel:08008362567"
-                      className="block text-center py-2 bg-paper dark:bg-paper-dark border border-rule dark:border-rule-dark rounded-sm text-small font-serif font-bold text-ink dark:text-ink-dark hover:border-crisis-red/20 dark:hover:border-crisis-red/30 hover:bg-panel dark:hover:bg-panel-dark transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
-                    >
-                      0-800-TEMBLOR (0800-8362567)
-                    </a>
-                  </div>
-                </div>
-              </section>
-
-              <hr className="border-rule dark:border-rule-dark" />
-
-              {/* Plataformas Oficiales */}
-              <section className="pb-4 space-y-3">
-                <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Plataformas Oficiales</h3>
-                <div className="space-y-2.5">
-                  <PlatformCard
-                    href="https://venapp.gob.ve"
-                    title="VENApp"
-                    description="App oficial para reportar emergencias de infraestructura y civiles."
-                    badgeColor="blue"
-                    icon={
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
-                        <path d="M12 18h.01" />
-                      </svg>
-                    }
-                  />
-                  <PlatformCard
-                    href="https://sismo2026.gob.ve"
-                    title="Desaparecidos Terremoto VE"
-                    description="Registro civil y búsqueda activa de personas afectadas por el sismo."
-                    badgeColor="purple"
-                    icon={
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.3-4.3" />
-                      </svg>
-                    }
-                  />
-                </div>
-              </section>
-            </div>
+            {/* Plataformas Oficiales */}
+            <section className="pb-4 space-y-3">
+              <h3 className="text-eyebrow text-ink-muted dark:text-ink-muted-dark font-semibold">Plataformas Oficiales</h3>
+              <div className="space-y-2.5">
+                <PlatformCard
+                  href="https://venapp.gob.ve"
+                  title="VENApp"
+                  description="App oficial para reportar emergencias de infraestructura y civiles."
+                  badgeColor="blue"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                      <path d="M12 18h.01" />
+                    </svg>
+                  }
+                />
+                <PlatformCard
+                  href="https://sismo2026.gob.ve"
+                  title="Desaparecidos Terremoto VE"
+                  description="Registro civil y búsqueda activa de personas afectadas por el sismo."
+                  badgeColor="purple"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                  }
+                />
+              </div>
+            </section>
           </div>
         </div>
-      )}
+      </div>
     </>
   )
 }
+
