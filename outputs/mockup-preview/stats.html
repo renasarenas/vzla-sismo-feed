@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Indicadores (croquis)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',system-ui,sans-serif}
+  .font-serif{font-family:'Newsreader',Georgia,serif}
+  .tnum{font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;border-radius:9999px;padding:.2rem .7rem;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+  .fade-in{animation:fadeInSimple .4s ease-out both}
+  @keyframes fadeInSimple{from{opacity:0}to{opacity:1}}
+  .no-motion *, .no-motion *::before, .no-motion *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+</style>
+</head>
+<body class="bg-[#F4F4F2] text-[#17171A] dark:bg-[#0D0D0D] dark:text-[#E9E9E6] transition-colors">
+
+  <div class="sticky top-0 z-50 bg-[#FDE68A] text-[#78350F] text-center text-[11px] font-bold uppercase tracking-widest py-1.5 border-b border-[#F59E0B]">
+    ⚠ Croquis de diseño — vista previa, no es la página en producción
+  </div>
+
+  <header class="sticky top-[26px] z-40 bg-[#F4F4F2]/95 dark:bg-[#0D0D0D]/95 backdrop-blur">
+    <div class="h-1 bg-[#CF1020]"></div>
+    <div class="border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <div class="max-w-[88rem] mx-auto px-4 sm:px-8 h-16 flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-3 shrink-0">
+          <svg viewBox="0 0 64 24" class="w-9 h-5 text-[#CF1020]" fill="none"><path d="M0 12 H10 L13 12 L16 4 L19 20 L22 8 L25 16 L28 12 H40 L43 6 L46 18 L49 12 H64" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span class="flex flex-col leading-none">
+            <span class="font-serif text-xl font-semibold tracking-tight">Sismo Venezuela</span>
+            <span class="text-[10px] uppercase tracking-[0.14em] text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Boletín de emergencia</span>
+          </span>
+        </a>
+        <span class="hidden sm:block h-6 w-px bg-[#E2E1DC] dark:bg-[#2A2B31]"></span>
+        <nav class="hidden sm:flex items-center gap-7">
+          <a href="index.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Boletín</a>
+          <a href="mapa.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Mapa sísmico</a>
+          <a href="stats.html" class="text-[11px] uppercase tracking-widest py-5 border-b-2 border-[#CF1020]">Indicadores</a>
+          <a href="donar.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Donar</a>
+        </nav>
+        <div class="flex-1"></div>
+        <button id="darkToggle" class="p-2 rounded text-[#6B6B66] dark:text-[#9A9A93] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50" aria-label="Cambiar tema">
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg id="iconSun" class="hidden" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <button id="motionToggle" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] border border-[#E2E1DC] dark:border-[#2A2B31] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50" title="Alterna entre auto-detección, forzar activadas o forzar desactivadas">
+          <span id="motionLabel">Animaciones: auto</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside class="hidden min-[2050px]:block fixed top-32 left-10 w-64 z-30">
+    <div class="bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] p-4">
+      <p class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-semibold mb-3 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#CF1020] animate-pulse"></span>Últimas actualizaciones</p>
+      <ul class="space-y-3">
+        <li class="pb-3 border-b border-[#E2E1DC] dark:border-[#2A2B31]"><span class="pill bg-[#EAB308]/10 text-[#854D0E] mb-1.5">Réplicas</span><a href="index.html" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">FUNVISIS descarta réplicas de magnitud mayor a 5.0</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 3h</span></li>
+        <li class="pb-3 border-b border-[#E2E1DC] dark:border-[#2A2B31]"><span class="pill bg-[#22C55E]/10 text-[#166534] mb-1.5">Acopio</span><a href="index.html" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Puntos de acopio se multiplican en Caracas</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 5h</span></li>
+        <li><span class="pill bg-[#3B82F6]/10 text-[#1E40AF] mb-1.5">Ayuda</span><a href="index.html" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Hospital de campaña instalado en tiempo récord en La Guaira</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 2h</span></li>
+      </ul>
+    </div>
+  </aside>
+
+  <aside class="hidden min-[2050px]:block fixed top-32 right-10 w-64 z-30">
+    <div class="bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] p-4">
+      <p class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-semibold mb-3">Más leídas</p>
+      <ol class="space-y-3">
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">1</span><a href="index.html" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Asciende a 1.943 el número de muertos tras los terremotos en Venezuela</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">2</span><a href="index.html" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">El milagro de los seis días: rescatan con vida a joven atrapado entre escombros</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">3</span><a href="index.html" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">China anuncia envío de ayuda a Venezuela por más de $13.500 millones</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">4</span><a href="index.html" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">El error que, según una arquitecta venezolana, convirtió el terremoto en tragedia</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">5</span><a href="index.html" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Doble terremoto: revelan detalles de la situación en Carabobo</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main class="max-w-[88rem] mx-auto px-4 sm:px-8 py-10 lg:py-14">
+    <header class="border-b-2 border-[#17171A] dark:border-[#E9E9E6] pb-6 mb-8">
+      <p class="text-[11px] uppercase tracking-widest text-[#CF1020] mb-3 font-semibold">Indicadores del boletín</p>
+      <h1 class="font-serif text-4xl font-semibold">Reportes verificados por sección</h1>
+      <p class="text-[#6B6B66] dark:text-[#9A9A93] mt-3 max-w-prose">Distribución de los reportes confirmados desde el sismo del 24 de junio de 2026.</p>
+    </header>
+
+    <section class="fade-in mb-12 grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-x-12 gap-y-4 items-end border-b border-[#E2E1DC] dark:border-[#2A2B31] pb-10">
+      <div>
+        <p class="font-serif text-[6rem] leading-none font-semibold tnum">106</p>
+        <p class="text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mt-3">Reportes verificados en total</p>
+      </div>
+      <div class="sm:text-right">
+        <p class="text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mb-1">Última actualización</p>
+        <p class="font-serif text-xl">hace 4h</p>
+      </div>
+    </section>
+
+    <section class="fade-in">
+      <h2 class="text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mb-4">Distribución por sección</h2>
+      <div class="border-t border-[#17171A] dark:border-[#E9E9E6]">
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#CF1020]/10 text-[#8A0E15] w-fit">Sismo</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#CF1020]" style="width:100%"></div></div>
+          <span class="font-serif text-xl tnum text-right">31</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#F97316]/10 text-[#9A3412] w-fit">Rescate</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#F97316]" style="width:74%"></div></div>
+          <span class="font-serif text-xl tnum text-right">23</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#3B82F6]/10 text-[#1E40AF] w-fit">Ayuda humanitaria</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#3B82F6]" style="width:61%"></div></div>
+          <span class="font-serif text-xl tnum text-right">19</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#A855F7]/10 text-[#6B21A8] w-fit">Desaparecidos</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#A855F7]" style="width:42%"></div></div>
+          <span class="font-serif text-xl tnum text-right">13</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#22C55E]/10 text-[#166534] w-fit">Puntos de acopio</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#22C55E]" style="width:35%"></div></div>
+          <span class="font-serif text-xl tnum text-right">11</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#EAB308]/10 text-[#854D0E] w-fit">Réplicas</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#EAB308]" style="width:26%"></div></div>
+          <span class="font-serif text-xl tnum text-right">8</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="pill bg-[#14B8A6]/10 text-[#115E59] w-fit">Donaciones</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#14B8A6]" style="width:16%"></div></div>
+          <span class="font-serif text-xl tnum text-right">5</span>
+        </div>
+        <div class="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4">
+          <span class="pill bg-[#94A3B8]/10 text-[#334155] w-fit">Internacional</span>
+          <div class="hidden sm:block h-1.5 bg-[#E2E1DC] dark:bg-[#2A2B31] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#94A3B8]" style="width:10%"></div></div>
+          <span class="font-serif text-xl tnum text-right">3</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+const darkToggle = document.getElementById('darkToggle')
+darkToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark')
+  document.getElementById('iconMoon').classList.toggle('hidden', isDark)
+  document.getElementById('iconSun').classList.toggle('hidden', !isDark)
+  localStorage.setItem('mockup-theme', isDark ? 'dark' : 'light')
+})
+if (localStorage.getItem('mockup-theme') === 'dark') darkToggle.click()
+
+const MOTION_KEY = 'mockup-motion'
+function dispositivoLimitado(){
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return true
+  if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true
+  const conn = navigator.connection
+  if (conn && (conn.saveData || /2g/.test(conn.effectiveType || ''))) return true
+  return false
+}
+function applyMotion(){
+  const pref = localStorage.getItem(MOTION_KEY) || 'auto'
+  const reduce = pref === 'off' ? true : pref === 'on' ? false : dispositivoLimitado()
+  document.documentElement.classList.toggle('no-motion', reduce)
+  const label = document.getElementById('motionLabel')
+  if (label) label.textContent = 'Animaciones: ' + (pref === 'auto' ? `auto (${reduce ? 'off' : 'on'})` : pref)
+}
+document.getElementById('motionToggle').addEventListener('click', () => {
+  const order = ['auto', 'on', 'off']
+  const cur = localStorage.getItem(MOTION_KEY) || 'auto'
+  localStorage.setItem(MOTION_KEY, order[(order.indexOf(cur) + 1) % order.length])
+  applyMotion()
+})
+applyMotion()
+</script>
+</body>
+</html>

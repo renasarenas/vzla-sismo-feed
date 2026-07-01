@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sismo Venezuela — Boletín (croquis)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',system-ui,sans-serif}
+  .font-serif{font-family:'Newsreader',Georgia,serif}
+  .tnum{font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;border-radius:9999px;padding:.2rem .7rem;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+  .fade-in{animation:fadeInSimple .4s ease-out both}
+  @keyframes fadeInSimple{from{opacity:0}to{opacity:1}}
+  .no-motion *, .no-motion *::before, .no-motion *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+</style>
+</head>
+<body class="bg-[#F4F4F2] text-[#17171A] dark:bg-[#0D0D0D] dark:text-[#E9E9E6] transition-colors">
+
+  <div class="sticky top-0 z-50 bg-[#FDE68A] text-[#78350F] text-center text-[11px] font-bold uppercase tracking-widest py-1.5 border-b border-[#F59E0B]">
+    ⚠ Croquis de diseño — vista previa, no es la página en producción
+  </div>
+
+  <!-- ===================== NAVBAR ===================== -->
+  <header class="sticky top-[26px] z-40 bg-[#F4F4F2]/95 dark:bg-[#0D0D0D]/95 backdrop-blur">
+    <div class="h-1 bg-[#CF1020]"></div>
+    <div class="border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <div class="max-w-[88rem] mx-auto px-4 sm:px-8 h-16 flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-3 shrink-0">
+          <svg viewBox="0 0 64 24" class="w-9 h-5 text-[#CF1020]" fill="none"><path d="M0 12 H10 L13 12 L16 4 L19 20 L22 8 L25 16 L28 12 H40 L43 6 L46 18 L49 12 H64" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span class="flex flex-col leading-none">
+            <span class="font-serif text-xl font-semibold tracking-tight">Sismo Venezuela</span>
+            <span class="text-[10px] uppercase tracking-[0.14em] text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Boletín de emergencia</span>
+          </span>
+        </a>
+        <span class="hidden sm:block h-6 w-px bg-[#E2E1DC] dark:bg-[#2A2B31]"></span>
+        <nav class="hidden sm:flex items-center gap-7">
+          <a href="index.html" class="text-[11px] uppercase tracking-widest py-5 border-b-2 border-[#CF1020]">Boletín</a>
+          <a href="mapa.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Mapa sísmico</a>
+          <a href="stats.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Indicadores</a>
+          <a href="donar.html" class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6]">Donar</a>
+        </nav>
+        <div class="flex-1"></div>
+        <span class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-mono hidden lg:block">106 noticias · última hace 4h</span>
+        <span class="hidden sm:block h-6 w-px bg-[#E2E1DC] dark:bg-[#2A2B31]"></span>
+        <button id="darkToggle" class="p-2 rounded text-[#6B6B66] dark:text-[#9A9A93] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50" aria-label="Cambiar tema">
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg id="iconSun" class="hidden" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <button id="motionToggle" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] border border-[#E2E1DC] dark:border-[#2A2B31] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50" title="Alterna entre auto-detección, forzar activadas o forzar desactivadas">
+          <span id="motionLabel">Animaciones: auto</span>
+        </button>
+        <button id="menuToggle" class="sm:hidden p-2 rounded text-[#6B6B66] dark:text-[#9A9A93]" aria-label="Menú">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobileMenu" class="hidden sm:hidden border-b border-[#E2E1DC] dark:border-[#2A2B31] bg-[#F4F4F2] dark:bg-[#0D0D0D] px-4">
+      <div class="py-2">
+        <a href="index.html" class="block py-3 text-[11px] uppercase tracking-widest text-[#CF1020] border-b border-[#E2E1DC]/60 dark:border-[#2A2B31]/60">Boletín</a>
+        <a href="mapa.html" class="block py-3 text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] border-b border-[#E2E1DC]/60 dark:border-[#2A2B31]/60">Mapa sísmico</a>
+        <a href="stats.html" class="block py-3 text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] border-b border-[#E2E1DC]/60 dark:border-[#2A2B31]/60">Indicadores</a>
+        <a href="donar.html" class="block py-3 text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93]">Donar</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Rails laterales — solo aparecen en pantallas muy anchas (2050px+), donde sobra
+       margen a los costados del contenedor central. Fijos a las orillas del viewport.
+       Ocultos por completo en celular/tablet/laptop normal (nada que se rompa ahí). -->
+  <aside class="hidden min-[2050px]:block fixed top-32 left-10 w-64 z-30">
+    <div class="bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] p-4">
+      <p class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-semibold mb-3 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#CF1020] animate-pulse"></span>Últimas actualizaciones</p>
+      <ul class="space-y-3">
+        <li class="pb-3 border-b border-[#E2E1DC] dark:border-[#2A2B31]"><span class="pill bg-[#EAB308]/10 text-[#854D0E] mb-1.5">Réplicas</span><a href="#" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">FUNVISIS descarta réplicas de magnitud mayor a 5.0</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 3h</span></li>
+        <li class="pb-3 border-b border-[#E2E1DC] dark:border-[#2A2B31]"><span class="pill bg-[#22C55E]/10 text-[#166534] mb-1.5">Acopio</span><a href="#" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Puntos de acopio se multiplican en Caracas</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 5h</span></li>
+        <li><span class="pill bg-[#3B82F6]/10 text-[#1E40AF] mb-1.5">Ayuda</span><a href="#" class="block text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Hospital de campaña instalado en tiempo récord en La Guaira</a><span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] font-mono">hace 2h</span></li>
+      </ul>
+    </div>
+  </aside>
+
+  <aside class="hidden min-[2050px]:block fixed top-32 right-10 w-64 z-30">
+    <div class="bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] p-4">
+      <p class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-semibold mb-3">Más leídas</p>
+      <ol class="space-y-3">
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">1</span><a href="#" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Asciende a 1.943 el número de muertos tras los terremotos en Venezuela</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">2</span><a href="#" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">El milagro de los seis días: rescatan con vida a joven atrapado entre escombros</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">3</span><a href="#" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">China anuncia envío de ayuda a Venezuela por más de $13.500 millones</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">4</span><a href="#" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">El error que, según una arquitecta venezolana, convirtió el terremoto en tragedia</a></li>
+        <li class="flex gap-3"><span class="font-serif text-lg text-[#CF1020] font-semibold w-4 shrink-0 tnum">5</span><a href="#" class="text-sm font-serif leading-snug hover:text-[#CF1020] transition-colors">Doble terremoto: revelan detalles de la situación en Carabobo</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main class="max-w-[88rem] mx-auto px-4 sm:px-8">
+
+    <!-- LIVE STATUS + acciones -->
+    <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-[#CF1020] animate-pulse"></span>
+        <span class="text-[11px] tracking-widest text-[#CF1020] uppercase font-semibold">En vivo</span>
+        <span class="h-3 w-px bg-[#E2E1DC] dark:bg-[#2A2B31]"></span>
+        <span class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] tracking-wide">Sismo Venezuela · 24 jun 2026</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnAlertas" class="flex items-center gap-1.5 px-3.5 py-2 rounded border border-[#E2E1DC] dark:border-[#2A2B31] text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2 7H4c.5-.5 2-2.5 2-7"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span id="btnAlertasLabel">Activar alertas</span>
+        </button>
+        <button id="btnExportar" class="flex items-center gap-1.5 px-3.5 py-2 rounded border border-[#E2E1DC] dark:border-[#2A2B31] text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14"/><path d="M12 17V4"/><path d="m7 9 5-5 5 5"/></svg>
+          <span id="btnExportarLabel">Exportar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hint dismissible -->
+    <div id="hintBar" class="flex items-center justify-between gap-3 py-2.5 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <p class="font-mono text-[11px] text-[#6B6B66] dark:text-[#9A9A93] tracking-wide leading-relaxed">
+        Activá <strong class="text-[#17171A] dark:text-[#E9E9E6] font-semibold">alertas</strong> para enterarte de réplicas al instante, o <strong class="text-[#17171A] dark:text-[#E9E9E6] font-semibold">exportá</strong> el boletín completo — los botones están arriba.
+      </p>
+      <button onclick="document.getElementById('hintBar').remove()" class="shrink-0 p-1 rounded text-[#6B6B66] dark:text-[#9A9A93] hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50" aria-label="Cerrar aviso">✕</button>
+    </div>
+
+    <!-- ============ HERO PACKAGE ============ -->
+    <section class="fade-in grid grid-cols-1 lg:grid-cols-12 gap-8 py-8 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <a href="#" class="lg:col-span-7 group block">
+        <div class="relative aspect-[16/9] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]">
+          <img src="https://images.unsplash.com/photo-1541448723449-8d4d1a15e6d5?w=1200&q=60" class="w-full h-full object-cover" alt="">
+          <span class="pill absolute top-3 left-3 bg-[#F97316] text-white">Rescate</span>
+        </div>
+        <h1 class="font-serif font-semibold text-[2.1rem] leading-[1.05] tracking-tight mt-4 group-hover:text-[#CF1020] transition-colors">
+          Asciende a 1.943 el número de muertos tras los terremotos en Venezuela
+        </h1>
+        <p class="text-[#6B6B66] dark:text-[#9A9A93] text-[15px] leading-relaxed mt-3 max-w-[54ch]">
+          Las autoridades revisaron al alza la cifra oficial mientras continúan las labores de rescate en las zonas más afectadas por el doblete sísmico.
+        </p>
+        <p class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] tracking-wide mt-3 font-mono">BBC Mundo · hace 3h</p>
+      </a>
+
+      <div class="lg:col-span-5 flex flex-col gap-5">
+        <a href="#" class="group flex gap-4">
+          <div class="relative w-32 aspect-[4/3] shrink-0 overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]">
+            <img src="https://images.unsplash.com/photo-1615486364868-3b0d5e0d0a4b?w=400&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <div class="min-w-0">
+            <span class="pill bg-[#F97316]/10 text-[#9A3412]">Rescate</span>
+            <h3 class="font-serif font-semibold text-[1.05rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">
+              Video: un herido por quemaduras dejó explosión de un transformador
+            </h3>
+            <p class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] mt-1 font-mono">La Patilla · hace 4h</p>
+          </div>
+        </a>
+        <a href="#" class="group flex gap-4 pb-5 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+          <div class="relative w-32 aspect-[4/3] shrink-0 overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]">
+            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <div class="min-w-0">
+            <span class="pill bg-[#3B82F6]/10 text-[#1E40AF]">Ayuda humanitaria</span>
+            <h3 class="font-serif font-semibold text-[1.05rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">
+              Propietario de los Astros coordina envío de ayuda humanitaria en avión de carga
+            </h3>
+            <p class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] mt-1 font-mono">La Patilla · hace 4h</p>
+          </div>
+        </a>
+
+        <div class="bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] p-4">
+          <button id="resumenToggle" class="w-full flex items-center justify-between text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] font-semibold">
+            <span>Resumen del evento</span>
+            <span id="resumenChevron">▲</span>
+          </button>
+          <div id="resumenBody" class="grid grid-cols-2 gap-x-4 gap-y-3 mt-3">
+            <div class="border-l-2 border-[#E2E1DC] dark:border-[#2A2B31] pl-3">
+              <p class="font-mono text-lg font-bold tnum">M7.2 + M7.5</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Doblete sísmico</p>
+            </div>
+            <div class="border-l-2 border-[#E2E1DC] dark:border-[#2A2B31] pl-3">
+              <p class="font-mono text-lg font-bold tnum">40 seg</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Entre sismos</p>
+            </div>
+            <div class="border-l-2 border-[#CF1020] pl-3">
+              <p class="font-mono text-lg font-bold text-[#CF1020] tnum">~2.000</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Muertos (aprox.)</p>
+            </div>
+            <div class="border-l-2 border-[#CF1020] pl-3">
+              <p class="font-mono text-lg font-bold text-[#CF1020] tnum">~10.571</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] mt-0.5">Heridos</p>
+            </div>
+          </div>
+          <a href="stats.html" class="block text-center text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#CF1020] mt-4 pt-3 border-t border-[#E2E1DC] dark:border-[#2A2B31]">Ver mapa e indicadores completos →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION: SISMO (curated preview) ============ -->
+    <section class="fade-in py-8 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-serif font-semibold text-xl flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-[#CF1020]"></span> Sismo</h2>
+        <button data-vertodas="sismo" class="vertodas text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#CF1020]">Ver todas →</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <a href="#" class="lg:col-span-5 group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]">
+            <img src="https://images.unsplash.com/photo-1626885930974-4b69aa21bbf9?w=800&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <span class="pill bg-[#CF1020]/10 text-[#8A0E15] mt-3">Sismo</span>
+          <h3 class="font-serif font-semibold text-xl leading-snug mt-2 group-hover:text-[#CF1020] transition-colors">
+            El error que, según una arquitecta venezolana, convirtió el terremoto en tragedia
+          </h3>
+          <p class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] mt-2 font-mono">La Patilla · hace 4h</p>
+        </a>
+        <div class="lg:col-span-7 flex flex-col">
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+            <div class="min-w-0">
+              <span class="pill bg-[#CF1020]/10 text-[#8A0E15] mb-1.5">Sismo</span>
+              <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">Doble terremoto: revelan detalles de la situación en el municipio más afectado de Carabobo</h4>
+            </div>
+            <span class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] font-mono shrink-0 whitespace-nowrap">Caraota Digital · 2h</span>
+          </a>
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+            <div class="min-w-0">
+              <span class="pill bg-[#EAB308]/10 text-[#854D0E] mb-1.5">Réplicas</span>
+              <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">FUNVISIS descarta réplicas de magnitud mayor a 5.0 en las próximas 72 horas</h4>
+            </div>
+            <span class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] font-mono shrink-0 whitespace-nowrap">El Nacional · 3h</span>
+          </a>
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5">
+            <div class="min-w-0">
+              <span class="pill bg-[#CF1020]/10 text-[#8A0E15] mb-1.5">Sismo</span>
+              <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">Mapa: así se distribuyeron los daños estructurales en Yaracuy y Carabobo</h4>
+            </div>
+            <span class="text-[11px] text-[#6B6B66] dark:text-[#9A9A93] font-mono shrink-0 whitespace-nowrap">Efecto Cocuyo · 5h</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION: RESCATE Y AYUDA (curated preview) ============ -->
+    <section class="fade-in py-8 border-b border-[#E2E1DC] dark:border-[#2A2B31]">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-serif font-semibold text-xl flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-[#F97316]"></span> Rescate y ayuda humanitaria</h2>
+        <button data-vertodas="rescate" class="vertodas text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#CF1020]">Ver todas →</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]"><img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=60" class="w-full h-full object-cover" alt=""></div>
+          <span class="pill bg-[#F97316]/10 text-[#9A3412] mt-2.5">Rescate</span>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">El milagro de los seis días: rescatan con vida a joven atrapado entre escombros</h4>
+          <p class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] mt-1.5 font-mono">BBC Mundo · 4h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]"><img src="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=500&q=60" class="w-full h-full object-cover" alt=""></div>
+          <span class="pill bg-[#3B82F6]/10 text-[#1E40AF] mt-2.5">Ayuda humanitaria</span>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">China anuncia envío de ayuda a Venezuela por más de $13.500 millones</h4>
+          <p class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] mt-1.5 font-mono">BioBioChile · 2h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]"><img src="https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=500&q=60" class="w-full h-full object-cover" alt=""></div>
+          <span class="pill bg-[#3B82F6]/10 text-[#1E40AF] mt-2.5">Ayuda humanitaria</span>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">Organización cristiana de EEUU instala hospital de campaña récord en La Guaira</h4>
+          <p class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] mt-1.5 font-mono">Prensa local · 2h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31]"><img src="https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=500&q=60" class="w-full h-full object-cover" alt=""></div>
+          <span class="pill bg-[#22C55E]/10 text-[#166534] mt-2.5">Acopio</span>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-1.5 group-hover:text-[#CF1020] transition-colors">Puntos de acopio se multiplican en Caracas: dónde donar agua y alimentos</h4>
+          <p class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] mt-1.5 font-mono">El Pitazo · 5h</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ BOLETÍN COMPLETO — grid filtrable (feature parity con el feed actual) ============ -->
+    <section class="py-8">
+      <h2 class="font-serif font-semibold text-xl mb-5">Boletín completo</h2>
+
+      <!-- Barra de filtros -->
+      <div class="border-b border-[#E2E1DC] dark:border-[#2A2B31] pb-3 mb-2">
+        <div class="flex items-end gap-4 flex-wrap">
+          <div id="tagBar" class="flex gap-5 overflow-x-auto flex-1 min-w-0">
+            <button data-tag="todos" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#17171A] dark:text-[#E9E9E6]">Todas<span class="active-underline absolute left-0 right-0 -bottom-px h-0.5 bg-[#CF1020]"></span></button>
+            <button data-tag="sismo" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Sismo</button>
+            <button data-tag="rescate" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Rescate</button>
+            <button data-tag="desaparecidos" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Desap.</button>
+            <button data-tag="puntos_acopio" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Acopio</button>
+            <button data-tag="ayuda_humanitaria" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Ayuda</button>
+            <button data-tag="replicas" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Réplicas</button>
+            <button data-tag="donaciones" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Donar</button>
+            <button data-tag="internacional" class="tagbtn relative text-[10px] uppercase tracking-widest shrink-0 pb-2.5 text-[#6B6B66] dark:text-[#9A9A93]">Int.</button>
+          </div>
+          <div class="flex gap-4 shrink-0 pb-2.5">
+            <button data-lang="es" class="langbtn text-[11px] uppercase tracking-widest text-[#17171A] dark:text-[#E9E9E6]">Es</button>
+            <button data-lang="en" class="langbtn text-[11px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93]">En</button>
+          </div>
+          <select id="zonaSelect" class="shrink-0 mb-2 text-[11px] uppercase tracking-widest bg-transparent border-b-2 border-[#E2E1DC] dark:border-[#2A2B31] pb-0.5 pr-6">
+            <option value="todos">Toda Venezuela</option>
+            <option value="la_guaira">La Guaira</option>
+            <option value="caracas">Caracas</option>
+            <option value="carabobo">Carabobo</option>
+            <option value="yaracuy">Yaracuy</option>
+          </select>
+        </div>
+        <div class="relative mt-2">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 text-[#6B6B66] dark:text-[#9A9A93]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          </span>
+          <input id="searchInput" type="text" placeholder="Buscar noticias…" class="w-full pl-5 pr-4 py-2.5 text-[11px] tracking-wide bg-transparent border-b border-[#E2E1DC] dark:border-[#2A2B31] focus:border-[#CF1020] focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Banner de nuevas noticias -->
+      <button id="nuevasBanner" class="hidden w-full overflow-hidden py-2 my-4 text-[11px] uppercase tracking-widest text-white bg-[#CF1020] hover:bg-[#8A0E15] flex items-center justify-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> 1 nuevo reporte — ver arriba
+      </button>
+
+      <p id="countLabel" class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] tracking-widest uppercase mb-4 tnum"></p>
+
+      <div id="feedGrid" class="fade-in grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+
+      <div class="py-8 text-center">
+        <button id="cargarMas" class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] border border-[#E2E1DC] dark:border-[#2A2B31] px-5 py-2.5 hover:bg-[#E2E1DC]/50 dark:hover:bg-[#2A2B31]/50">Cargar más</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Botón flotante de emergencias -->
+  <button id="emergBtn" class="fixed bottom-5 right-5 bg-[#CF1020] hover:bg-[#8A0E15] text-white px-5 py-3 shadow-lg z-[60] flex items-center gap-2.5 text-[11px] uppercase tracking-widest font-semibold">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span class="hidden sm:inline">Emergencias</span>
+  </button>
+
+  <!-- Modal emergencias -->
+  <div id="emergModal" class="hidden fixed inset-0 z-[1100] items-end sm:items-center justify-center bg-black/70 sm:p-4">
+    <div class="bg-white dark:bg-[#161616] w-full sm:max-w-lg h-[70vh] sm:h-auto sm:max-h-[75vh] flex flex-col border-t-4 border-[#CF1020]">
+      <div class="flex items-start justify-between p-5 border-b border-[#E2E1DC] dark:border-[#2A2B31] shrink-0">
+        <div>
+          <p class="text-[10px] uppercase tracking-widest text-[#CF1020] mb-1.5">Directorio de emergencia</p>
+          <h2 class="font-serif text-xl">Líneas oficiales de atención</h2>
+        </div>
+        <button onclick="document.getElementById('emergModal').classList.add('hidden')" class="p-2 text-[#6B6B66] dark:text-[#9A9A93]">✕</button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-lg border border-[#CF1020]/10 bg-[#CF1020]/5"><span class="block text-[11px] font-medium text-[#CF1020]">Movistar</span><span class="block text-lg font-bold">911</span></div>
+          <div class="p-3 rounded-lg border border-[#CF1020]/10 bg-[#CF1020]/5"><span class="block text-[11px] font-medium text-[#CF1020]">CANTV fijos</span><span class="block text-lg font-bold">171</span></div>
+        </div>
+        <div class="p-3 rounded-lg border border-[#E2E1DC] dark:border-[#2A2B31]">
+          <span class="block text-sm font-medium mb-1">FUNVISIS — Reporte de sismos</span>
+          <span class="block text-sm font-bold">0-800-TEMBLOR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const TAGS = {
+  todos:{label:'Todas',color:'#444444',dark:'#444444'},
+  sismo:{label:'Sismo',color:'#CF1020',dark:'#8A0E15'},
+  rescate:{label:'Rescate',color:'#F97316',dark:'#9A3412'},
+  desaparecidos:{label:'Desaparecidos',color:'#A855F7',dark:'#6B21A8'},
+  puntos_acopio:{label:'Acopio',color:'#22C55E',dark:'#166534'},
+  ayuda_humanitaria:{label:'Ayuda',color:'#3B82F6',dark:'#1E40AF'},
+  replicas:{label:'Réplicas',color:'#EAB308',dark:'#854D0E'},
+  donaciones:{label:'Donar',color:'#14B8A6',dark:'#115E59'},
+  internacional:{label:'Int.',color:'#94A3B8',dark:'#334155'},
+}
+
+const NOTICIAS = [
+  {tag:'sismo',zona:'yaracuy',idioma:'es',titulo:'Doble terremoto: revelan detalles de la situación en el municipio más afectado de Carabobo',fuente:'Caraota Digital',tiempo:'hace 2h',img:'https://images.unsplash.com/photo-1626885930974-4b69aa21bbf9?w=500&q=60'},
+  {tag:'ayuda_humanitaria',zona:'caracas',idioma:'es',titulo:'La organización cristiana de EEUU instala hospital de campaña en tiempo récord en La Guaira',fuente:'Prensa local',tiempo:'hace 2h',img:'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=500&q=60'},
+  {tag:'ayuda_humanitaria',zona:'caracas',idioma:'es',titulo:'China anuncia envío de ayuda a Venezuela por más de $13.500 millones para rescate y reconstrucción',fuente:'BioBioChile',tiempo:'hace 2h',img:'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=500&q=60'},
+  {tag:'rescate',zona:'la_guaira',idioma:'es',titulo:'El milagro de los seis días: rescatan con vida a joven atrapado entre escombros',fuente:'BBC Mundo',tiempo:'hace 4h',img:'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=60'},
+  {tag:'sismo',zona:'yaracuy',idioma:'es',titulo:'El error que, según una arquitecta venezolana, convirtió el terremoto en tragedia',fuente:'La Patilla',tiempo:'hace 4h',img:'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=500&q=60'},
+  {tag:'puntos_acopio',zona:'caracas',idioma:'es',titulo:'Puntos de acopio se multiplican en Caracas: dónde donar agua y alimentos',fuente:'El Pitazo',tiempo:'hace 5h',img:'https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=500&q=60'},
+  {tag:'replicas',zona:'carabobo',idioma:'es',titulo:'FUNVISIS descarta réplicas de magnitud mayor a 5.0 en las próximas 72 horas',fuente:'El Nacional',tiempo:'hace 3h',img:'https://images.unsplash.com/photo-1541448723449-8d4d1a15e6d5?w=500&q=60'},
+  {tag:'desaparecidos',zona:'la_guaira',idioma:'es',titulo:'Familiares reportan más de 50.000 desaparecidos ante Protección Civil',fuente:'Efecto Cocuyo',tiempo:'hace 6h',img:'https://images.unsplash.com/photo-1615486364868-3b0d5e0d0a4b?w=500&q=60'},
+  {tag:'internacional',zona:'todos',idioma:'en',titulo:'Venezuela earthquake death toll rises as rescue teams race against time',fuente:'Reuters',tiempo:'hace 3h',img:'https://images.unsplash.com/photo-1626885930974-4b69aa21bbf9?w=500&q=60'},
+  {tag:'donaciones',zona:'todos',idioma:'es',titulo:'Cómo donar de forma segura: guía de organizaciones verificadas',fuente:'La Gran Aldea',tiempo:'hace 7h',img:'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=60'},
+  {tag:'sismo',zona:'carabobo',idioma:'es',titulo:'Mapa: así se distribuyeron los daños estructurales en Yaracuy y Carabobo',fuente:'Efecto Cocuyo',tiempo:'hace 5h',img:'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=500&q=60'},
+  {tag:'rescate',zona:'la_guaira',idioma:'es',titulo:'Equipos de rescate internacional llegan a La Guaira con perros entrenados',fuente:'La Patilla',tiempo:'hace 8h',img:'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=500&q=60'},
+]
+
+function pill(tag){
+  const t = TAGS[tag]
+  return `<span class="pill" style="background:${t.color}1A;color:${t.dark}">${t.label}</span>`
+}
+
+function renderFeed(){
+  const grid = document.getElementById('feedGrid')
+  grid.innerHTML = NOTICIAS.map(n => `
+    <a href="#" class="noticia-card group block bg-white dark:bg-[#161616] border border-[#E2E1DC] dark:border-[#2A2B31] border-l-[3px] p-4 hover:bg-[#F4F4F2] dark:hover:bg-[#1A1A1A] transition-colors" style="border-left-color:${TAGS[n.tag].color}" data-tag="${n.tag}" data-zona="${n.zona}" data-idioma="${n.idioma}" data-titulo="${n.titulo.toLowerCase()}">
+      <div class="relative aspect-video w-full overflow-hidden bg-[#E2E1DC] dark:bg-[#2A2B31] mb-3">
+        <img src="${n.img}" class="w-full h-full object-cover" alt="">
+      </div>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        ${pill(n.tag)}
+        <span class="text-[10px] text-[#6B6B66] dark:text-[#9A9A93] tracking-wide tnum truncate text-right ml-auto font-mono">${n.fuente} · ${n.tiempo}</span>
+      </div>
+      <h2 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors mb-2">${n.titulo}</h2>
+      <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-3 pt-2 border-t border-[#E2E1DC] dark:border-[#2A2B31]">
+        <button onclick="event.preventDefault()" class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6] px-2 py-1">WA</button>
+        <button onclick="event.preventDefault()" class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6] px-2 py-1">TG</button>
+        <button onclick="event.preventDefault(); this.textContent='✓'" class="text-[10px] uppercase tracking-widest text-[#6B6B66] dark:text-[#9A9A93] hover:text-[#17171A] dark:hover:text-[#E9E9E6] px-2 py-1">🔗</button>
+      </div>
+    </a>
+  `).join('')
+  applyFilters()
+}
+
+let state = { tag:'todos', zona:'todos', idioma:'todos', q:'' }
+
+function applyFilters(){
+  const cards = document.querySelectorAll('.noticia-card')
+  let visible = 0
+  cards.forEach(c => {
+    const matchTag = state.tag === 'todos' || c.dataset.tag === state.tag
+    const matchZona = state.zona === 'todos' || c.dataset.zona === state.zona || c.dataset.zona === 'todos'
+    const matchIdioma = state.idioma === 'todos' || c.dataset.idioma === state.idioma
+    const matchQ = !state.q || c.dataset.titulo.includes(state.q)
+    const show = matchTag && matchZona && matchIdioma && matchQ
+    c.style.display = show ? '' : 'none'
+    if (show) visible++
+  })
+  document.getElementById('countLabel').textContent = `${visible} resultado${visible!==1?'s':''}`
+}
+
+document.getElementById('tagBar').addEventListener('click', e => {
+  const btn = e.target.closest('.tagbtn')
+  if (!btn) return
+  document.querySelectorAll('.tagbtn').forEach(b => { b.classList.remove('text-[#17171A]','dark:text-[#E9E9E6]'); b.classList.add('text-[#6B6B66]','dark:text-[#9A9A93]'); b.querySelector('.active-underline')?.remove() })
+  btn.classList.remove('text-[#6B6B66]','dark:text-[#9A9A93]'); btn.classList.add('text-[#17171A]','dark:text-[#E9E9E6]')
+  btn.insertAdjacentHTML('beforeend', '<span class="active-underline absolute left-0 right-0 -bottom-px h-0.5 bg-[#CF1020]"></span>')
+  state.tag = btn.dataset.tag
+  applyFilters()
+})
+
+document.querySelectorAll('.langbtn').forEach(b => b.addEventListener('click', () => {
+  const lang = b.dataset.lang
+  state.idioma = state.idioma === lang ? 'todos' : lang
+  document.querySelectorAll('.langbtn').forEach(x => x.classList.replace('text-[#17171A]','text-[#6B6B66]'))
+  document.querySelectorAll('.langbtn').forEach(x => x.classList.remove('dark:text-[#E9E9E6]'))
+  if (state.idioma !== 'todos') { b.classList.replace('text-[#6B6B66]','text-[#17171A]'); b.classList.add('dark:text-[#E9E9E6]') }
+  applyFilters()
+}))
+
+document.getElementById('zonaSelect').addEventListener('change', e => { state.zona = e.target.value; applyFilters() })
+document.getElementById('searchInput').addEventListener('input', e => { state.q = e.target.value.toLowerCase().trim(); applyFilters() })
+
+document.querySelectorAll('.vertodas').forEach(btn => btn.addEventListener('click', () => {
+  const tagMap = { sismo: 'sismo', rescate: 'rescate' }
+  const target = tagMap[btn.dataset.vertodas] || 'todos'
+  document.querySelector(`.tagbtn[data-tag="${target}"]`)?.click()
+  document.getElementById('feedGrid').scrollIntoView({ behavior: 'smooth', block: 'start' })
+}))
+
+document.getElementById('cargarMas').addEventListener('click', function(){
+  this.textContent = 'Fin del feed'
+  this.disabled = true
+})
+
+setTimeout(() => document.getElementById('nuevasBanner').classList.remove('hidden'), 4000)
+document.getElementById('nuevasBanner').addEventListener('click', function(){
+  this.classList.add('hidden')
+  window.scrollTo({top:0, behavior:'smooth'})
+})
+
+const alertBtn = document.getElementById('btnAlertas')
+alertBtn.addEventListener('click', () => {
+  document.getElementById('btnAlertasLabel').textContent = 'Alertas activas'
+  alertBtn.classList.add('cursor-default')
+})
+document.getElementById('btnExportar').addEventListener('click', function(){
+  const label = document.getElementById('btnExportarLabel')
+  label.textContent = 'Copiado'
+  setTimeout(() => label.textContent = 'Exportar', 2000)
+})
+
+document.getElementById('resumenToggle').addEventListener('click', () => {
+  const body = document.getElementById('resumenBody')
+  const open = !body.classList.contains('hidden')
+  body.classList.toggle('hidden')
+  document.getElementById('resumenChevron').textContent = open ? '▼' : '▲'
+})
+
+document.getElementById('menuToggle').addEventListener('click', () => document.getElementById('mobileMenu').classList.toggle('hidden'))
+
+document.getElementById('emergBtn').addEventListener('click', () => { document.getElementById('emergModal').classList.remove('hidden'); document.getElementById('emergModal').classList.add('flex') })
+
+const darkToggle = document.getElementById('darkToggle')
+darkToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark')
+  document.getElementById('iconMoon').classList.toggle('hidden', isDark)
+  document.getElementById('iconSun').classList.toggle('hidden', !isDark)
+  localStorage.setItem('mockup-theme', isDark ? 'dark' : 'light')
+})
+if (localStorage.getItem('mockup-theme') === 'dark') darkToggle.click()
+
+// Animaciones: auto-detección de dispositivo/conexión de gama baja, con override manual.
+// 'auto' = decide según el dispositivo · 'on' = forzar activadas · 'off' = forzar desactivadas.
+const MOTION_KEY = 'mockup-motion'
+function dispositivoLimitado(){
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return true
+  if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true
+  const conn = navigator.connection
+  if (conn && (conn.saveData || /2g/.test(conn.effectiveType || ''))) return true
+  return false
+}
+function applyMotion(){
+  const pref = localStorage.getItem(MOTION_KEY) || 'auto'
+  const reduce = pref === 'off' ? true : pref === 'on' ? false : dispositivoLimitado()
+  document.documentElement.classList.toggle('no-motion', reduce)
+  const label = document.getElementById('motionLabel')
+  if (label) label.textContent = 'Animaciones: ' + (pref === 'auto' ? `auto (${reduce ? 'off' : 'on'})` : pref)
+}
+document.getElementById('motionToggle').addEventListener('click', () => {
+  const order = ['auto', 'on', 'off']
+  const cur = localStorage.getItem(MOTION_KEY) || 'auto'
+  localStorage.setItem(MOTION_KEY, order[(order.indexOf(cur) + 1) % order.length])
+  applyMotion()
+})
+applyMotion()
+
+renderFeed()
+</script>
+</body>
+</html>

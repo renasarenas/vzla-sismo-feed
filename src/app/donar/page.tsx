@@ -181,16 +181,16 @@ function ArrowIcon() {
   )
 }
 
-function OrgCard({ org, index }: { org: Organizacion; index: number }) {
+function OrgCard({ org }: { org: Organizacion }) {
   const base = `
     group relative block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
     border-l-[3px] border-l-crisis-red p-5 h-full transition-colors
   `
   const motionProps = {
-    initial: { opacity: 0, y: 14 },
-    whileInView: { opacity: 1, y: 0 },
+    initial: { opacity: 0 },
+    whileInView: { opacity: 1 },
     viewport: { once: true, margin: '-40px' },
-    transition: { duration: 0.35, delay: Math.min(index, 8) * 0.05, ease: 'easeOut' as const },
+    transition: { duration: 0.25, ease: 'easeOut' as const },
   }
 
   if (!org.url) {
@@ -210,9 +210,8 @@ function OrgCard({ org, index }: { org: Organizacion; index: number }) {
       href={org.url}
       target="_blank"
       rel="noopener noreferrer"
-      whileHover={{ y: -4, transition: { duration: 0.15 } }}
-      whileTap={{ scale: 0.97 }}
-      className={`${base} hover:bg-[#1A1A1A] hover:shadow-lg hover:shadow-black/20 active:bg-[#1A1A1A]`}
+      whileTap={{ scale: 0.98 }}
+      className={`${base} hover:bg-[#1A1A1A] active:bg-[#1A1A1A]`}
     >
       <span className="absolute top-5 right-4 text-ink-muted dark:text-ink-muted-dark opacity-0 group-hover:opacity-100 group-active:opacity-100 group-hover:text-crisis-red group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
         <ArrowIcon />
@@ -225,19 +224,18 @@ function OrgCard({ org, index }: { org: Organizacion; index: number }) {
   )
 }
 
-function InsumoCard({ item, index }: { item: string; index: number }) {
+function InsumoCard({ item }: { item: string }) {
   const Icon = ICONO_POR_INSUMO[item] ?? IconCarton
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.3, delay: Math.min(index, 10) * 0.04, ease: 'easeOut' }}
-      whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.15 } }}
-      whileTap={{ scale: 0.96 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      whileTap={{ scale: 0.98 }}
       className="group flex flex-col items-start gap-3 bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
                  border-l-[3px] border-l-crisis-red px-4 py-5 hover:bg-crisis-red/[0.08] hover:border-l-crisis-red
-                 hover:shadow-lg hover:shadow-black/10 transition-colors"
+                 transition-colors"
     >
       <span className="flex items-center justify-center w-11 h-11 rounded-full bg-crisis-red/10 text-crisis-red shrink-0 group-hover:bg-crisis-red group-hover:text-white transition-colors">
         <span className="w-6 h-6"><Icon /></span>
@@ -299,8 +297,8 @@ export default function DonarPage() {
         <section className="mb-14">
           <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Insumos más necesitados</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {INSUMOS.map((item, i) => (
-              <InsumoCard key={item} item={item} index={i} />
+            {INSUMOS.map((item) => (
+              <InsumoCard key={item} item={item} />
             ))}
           </div>
         </section>
@@ -309,8 +307,8 @@ export default function DonarPage() {
         <section className="mb-14">
           <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Dónde donar dinero</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {ORGANIZACIONES.map((org, i) => (
-              <OrgCard key={org.nombre} org={org} index={i} />
+            {ORGANIZACIONES.map((org) => (
+              <OrgCard key={org.nombre} org={org} />
             ))}
           </div>
         </section>

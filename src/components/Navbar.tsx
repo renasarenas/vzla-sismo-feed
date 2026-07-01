@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
+import { MotionToggleButton } from './MotionPrefs'
 
 // Signature motif: a small seismogram trace. Used in the masthead and hero.
 function Seismograph({ className = '' }: { className?: string }) {
@@ -115,7 +116,7 @@ export function Navbar() {
                     <motion.span
                       layoutId="navbar-active-underline"
                       className="absolute left-0 right-0 -bottom-px h-0.5 bg-crisis-red"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
                     />
                   )}
                 </Link>
@@ -133,11 +134,12 @@ export function Navbar() {
           <span className="hidden sm:block h-6 w-px bg-rule dark:bg-rule-dark shrink-0" aria-hidden="true" />
 
           <div className="flex items-center gap-1 shrink-0">
+            <MotionToggleButton />
             <motion.button
               onClick={toggleDark}
               aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               className="p-2 rounded text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark hover:bg-rule/50 dark:hover:bg-rule-dark/50 transition-colors"
-              whileTap={{ scale: 0.85, rotate: 15 }}
+              whileTap={{ scale: 0.92 }}
             >
               <ThemeIcon dark={dark} />
             </motion.button>
@@ -146,7 +148,7 @@ export function Navbar() {
               onClick={() => setMenuOpen(o => !o)}
               aria-expanded={menuOpen}
               aria-label="Menú"
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.92 }}
             >
               <MenuIcon open={menuOpen} />
             </motion.button>

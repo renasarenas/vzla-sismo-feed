@@ -5,6 +5,8 @@ import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { NumerosEmergencia } from '@/components/NumerosEmergencia'
 import { OfflineBanner } from '@/components/OfflineBanner'
+import { MotionPrefProvider } from '@/components/MotionPrefs'
+import { SideRails } from '@/components/SideRails'
 
 // Editorial pairing: a screen-optimized news serif for the masthead and
 // headlines, a workhorse sans for UI, data and body copy.
@@ -54,9 +56,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
       >
         <OfflineBanner />
-        <Navbar />
-        {children}
-        <NumerosEmergencia />
+        <MotionPrefProvider>
+          <Navbar />
+          <SideRails />
+          {children}
+          <NumerosEmergencia />
+        </MotionPrefProvider>
         <Analytics />
       </body>
     </html>

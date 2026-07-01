@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sismo Venezuela — Croquis de rediseño (NO PRODUCCIÓN)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .font-serif { font-family: 'Newsreader', Georgia, serif; }
+  .tnum { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="bg-[#F4F4F2] text-[#17171A]">
+
+  <div class="sticky top-0 z-50 bg-[#FDE68A] text-[#78350F] text-center text-[11px] font-bold uppercase tracking-widest py-1.5 border-b border-[#F59E0B]">
+    ⚠ CROQUIS DE DISEÑO — no es la página en producción, solo una vista previa para revisar
+  </div>
+
+  <!-- NAVBAR (sin cambios mayores) -->
+  <header class="sticky top-[26px] z-40 bg-[#F4F4F2]/95 backdrop-blur">
+    <div class="h-1 bg-[#CF1020]"></div>
+    <div class="border-b border-[#E2E1DC]">
+      <div class="max-w-[88rem] mx-auto px-4 sm:px-8 h-16 flex items-center gap-6">
+        <a href="#" class="flex items-center gap-3 shrink-0">
+          <svg viewBox="0 0 64 24" class="w-9 h-5 text-[#CF1020]" fill="none"><path d="M0 12 H10 L13 12 L16 4 L19 20 L22 8 L25 16 L28 12 H40 L43 6 L46 18 L49 12 H64" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span class="flex flex-col leading-none">
+            <span class="font-serif text-xl font-semibold tracking-tight">Sismo Venezuela</span>
+            <span class="text-[10px] uppercase tracking-[0.14em] text-[#6B6B66] mt-0.5">Boletín de emergencia</span>
+          </span>
+        </a>
+        <span class="hidden sm:block h-6 w-px bg-[#E2E1DC]"></span>
+        <nav class="hidden sm:flex items-center gap-7">
+          <span class="text-[11px] uppercase tracking-widest py-5 border-b-2 border-[#CF1020]">Boletín</span>
+          <span class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66]">Mapa sísmico</span>
+          <span class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66]">Indicadores</span>
+          <span class="text-[11px] uppercase tracking-widest py-5 text-[#6B6B66]">Donar</span>
+        </nav>
+        <div class="flex-1"></div>
+        <span class="text-[10px] uppercase tracking-widest text-[#6B6B66] font-mono hidden lg:block">106 noticias · última hace 4h</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[88rem] mx-auto px-4 sm:px-8">
+
+    <!-- LIVE STATUS STRIP -->
+    <div class="flex items-center gap-3 py-3 border-b border-[#E2E1DC]">
+      <span class="w-2 h-2 rounded-full bg-[#CF1020] animate-pulse"></span>
+      <span class="text-[11px] tracking-widest text-[#CF1020] uppercase font-semibold">En vivo</span>
+      <span class="h-3 w-px bg-[#E2E1DC]"></span>
+      <span class="text-[11px] text-[#6B6B66] tracking-wide">Sismo Venezuela · 24 jun 2026</span>
+    </div>
+
+    <!-- ============ HERO PACKAGE — lead story + rail (news-site pattern) ============ -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 py-8 border-b border-[#E2E1DC]">
+
+      <!-- Lead story, dominant -->
+      <a href="#" class="lg:col-span-7 group block">
+        <div class="relative aspect-[16/9] w-full overflow-hidden bg-[#E2E1DC]">
+          <img src="https://images.unsplash.com/photo-1541448723449-8d4d1a15e6d5?w=1200&q=60" class="w-full h-full object-cover" alt="">
+          <span class="absolute top-3 left-3 bg-black/75 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1">Rescate</span>
+        </div>
+        <h1 class="font-serif font-semibold text-[2.1rem] leading-[1.05] tracking-tight mt-4 group-hover:text-[#CF1020] transition-colors">
+          Asciende a 1.943 el número de muertos tras los terremotos en Venezuela
+        </h1>
+        <p class="text-[#6B6B66] text-[15px] leading-relaxed mt-3 max-w-[54ch]">
+          Las autoridades revisaron al alza la cifra oficial mientras continúan las labores de rescate en las zonas más afectadas por el doblete sísmico.
+        </p>
+        <p class="text-[11px] text-[#6B6B66] tracking-wide mt-3 font-mono">BBC Mundo · hace 3h</p>
+      </a>
+
+      <!-- Right rail: 2 secondary stories + compact stats box -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <a href="#" class="group flex gap-4">
+          <div class="relative w-32 aspect-[4/3] shrink-0 overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1615486364868-3b0d5e0d0a4b?w=400&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <div class="min-w-0">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-[#F97316]">Rescate</span>
+            <h3 class="font-serif font-semibold text-[1.05rem] leading-snug mt-1 group-hover:text-[#CF1020] transition-colors">
+              Video: un herido por quemaduras dejó explosión de un transformador
+            </h3>
+            <p class="text-[11px] text-[#6B6B66] mt-1 font-mono">La Patilla · hace 4h</p>
+          </div>
+        </a>
+
+        <a href="#" class="group flex gap-4 pb-5 border-b border-[#E2E1DC]">
+          <div class="relative w-32 aspect-[4/3] shrink-0 overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <div class="min-w-0">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-[#3B82F6]">Ayuda humanitaria</span>
+            <h3 class="font-serif font-semibold text-[1.05rem] leading-snug mt-1 group-hover:text-[#CF1020] transition-colors">
+              Propietario de los Astros coordina envío de ayuda humanitaria en avión de carga
+            </h3>
+            <p class="text-[11px] text-[#6B6B66] mt-1 font-mono">La Patilla · hace 4h</p>
+          </div>
+        </a>
+
+        <!-- Compact stats infobox — same numbers, sidebar-sized instead of full-width panel -->
+        <div class="bg-white border border-[#E2E1DC] p-4">
+          <p class="text-[10px] uppercase tracking-widest text-[#6B6B66] font-semibold mb-3">Resumen del evento</p>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div class="border-l-2 border-[#E2E1DC] pl-3">
+              <p class="font-mono text-lg font-bold tnum">M7.2 + M7.5</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] mt-0.5">Doblete sísmico</p>
+            </div>
+            <div class="border-l-2 border-[#E2E1DC] pl-3">
+              <p class="font-mono text-lg font-bold tnum">40 seg</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] mt-0.5">Entre sismos</p>
+            </div>
+            <div class="border-l-2 border-[#CF1020] pl-3">
+              <p class="font-mono text-lg font-bold text-[#CF1020] tnum">~2.000</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] mt-0.5">Muertos (aprox.)</p>
+            </div>
+            <div class="border-l-2 border-[#CF1020] pl-3">
+              <p class="font-mono text-lg font-bold text-[#CF1020] tnum">~10.571</p>
+              <p class="text-[9px] uppercase tracking-widest text-[#6B6B66] mt-0.5">Heridos</p>
+            </div>
+          </div>
+          <a href="#" class="block text-center text-[10px] uppercase tracking-widest text-[#6B6B66] hover:text-[#CF1020] mt-4 pt-3 border-t border-[#E2E1DC]">Ver mapa e indicadores completos →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION: SISMO ============ -->
+    <section class="py-8 border-b border-[#E2E1DC]">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-serif font-semibold text-xl flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full bg-[#CF1020]"></span> Sismo
+        </h2>
+        <a href="#" class="text-[10px] uppercase tracking-widest text-[#6B6B66] hover:text-[#CF1020]">Ver todas →</a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Featured within section -->
+        <a href="#" class="lg:col-span-5 group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1626885930974-4b69aa21bbf9?w=800&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <h3 class="font-serif font-semibold text-xl leading-snug mt-3 group-hover:text-[#CF1020] transition-colors">
+            El error que, según una arquitecta venezolana, convirtió el terremoto en tragedia
+          </h3>
+          <p class="text-[11px] text-[#6B6B66] mt-2 font-mono">La Patilla · hace 4h</p>
+        </a>
+
+        <!-- Text-only headline list — the "news site" list pattern, no card borders -->
+        <div class="lg:col-span-7 flex flex-col">
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5 border-b border-[#E2E1DC]">
+            <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">Doble terremoto: revelan detalles de la situación en el municipio más afectado de Carabobo</h4>
+            <span class="text-[11px] text-[#6B6B66] font-mono shrink-0 whitespace-nowrap">Caraota Digital · 2h</span>
+          </a>
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5 border-b border-[#E2E1DC]">
+            <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">FUNVISIS descarta réplicas de magnitud mayor a 5.0 en las próximas 72 horas</h4>
+            <span class="text-[11px] text-[#6B6B66] font-mono shrink-0 whitespace-nowrap">El Nacional · 3h</span>
+          </a>
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5 border-b border-[#E2E1DC]">
+            <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">Mapa: así se distribuyeron los daños estructurales en Yaracuy y Carabobo</h4>
+            <span class="text-[11px] text-[#6B6B66] font-mono shrink-0 whitespace-nowrap">Efecto Cocuyo · 5h</span>
+          </a>
+          <a href="#" class="group flex items-baseline justify-between gap-4 py-3.5">
+            <h4 class="font-serif font-semibold text-[1.05rem] leading-snug group-hover:text-[#CF1020] transition-colors">Protección Civil eleva a nivel 3 la alerta sísmica en la región centro-occidental</h4>
+            <span class="text-[11px] text-[#6B6B66] font-mono shrink-0 whitespace-nowrap">La Patilla · 6h</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION: RESCATE Y AYUDA — 4-card row ============ -->
+    <section class="py-8 border-b border-[#E2E1DC]">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-serif font-semibold text-xl flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full bg-[#F97316]"></span> Rescate y ayuda humanitaria
+        </h2>
+        <a href="#" class="text-[10px] uppercase tracking-widest text-[#6B6B66] hover:text-[#CF1020]">Ver todas →</a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-2.5 group-hover:text-[#CF1020] transition-colors">El milagro de los seis días: rescatan con vida a joven atrapado entre escombros</h4>
+          <p class="text-[10px] text-[#6B6B66] mt-1.5 font-mono">BBC Mundo · 4h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=500&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-2.5 group-hover:text-[#CF1020] transition-colors">China anuncia envío de ayuda a Venezuela por más de $13.500 millones</h4>
+          <p class="text-[10px] text-[#6B6B66] mt-1.5 font-mono">BioBioChile · 2h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=500&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-2.5 group-hover:text-[#CF1020] transition-colors">Organización cristiana de EEUU instala hospital de campaña récord en La Guaira</h4>
+          <p class="text-[10px] text-[#6B6B66] mt-1.5 font-mono">Prensa local · 2h</p>
+        </a>
+        <a href="#" class="group block">
+          <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#E2E1DC]">
+            <img src="https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=500&q=60" class="w-full h-full object-cover" alt="">
+          </div>
+          <h4 class="font-serif font-semibold text-[0.95rem] leading-snug mt-2.5 group-hover:text-[#CF1020] transition-colors">Puntos de acopio se multiplican en Caracas: dónde donar agua y alimentos</h4>
+          <p class="text-[10px] text-[#6B6B66] mt-1.5 font-mono">El Pitazo · 5h</p>
+        </a>
+      </div>
+    </section>
+
+    <p class="text-center text-[11px] text-[#6B6B66] py-10 font-mono">— fin del croquis · maquetación de referencia, contenido de ejemplo —</p>
+  </main>
+
+</body>
+</html>

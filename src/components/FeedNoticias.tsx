@@ -3,7 +3,10 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@supabase/supabase-js'
 import { AnimatePresence, motion } from 'framer-motion'
+import NextImage from 'next/image'
 import { MapaVenezuelaSVG } from './MapaVenezuelaSVG'
+import { useMotionPref } from './MotionPrefs'
+import GaleriaHero, { type NoticiaGaleria } from './GaleriaHero'
 
 type Noticia = {
   id: string
@@ -52,17 +55,29 @@ const ZONAS: { value: string; label: string }[] = [
   { value: 'cojedes', label: 'Cojedes' },
 ]
 
-// Color text + left border per category. No pill backgrounds.
-const TAG_META: Record<string, { label: string; border: string; text: string; short: string }> = {
-  todos:             { label: 'Todas las categorías', border: 'border-l-[#444]',       text: 'text-ink-muted dark:text-ink-muted-dark', short: 'Todas'    },
-  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020]',                         short: 'Sismo'    },
-  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316]',                         short: 'Rescate'  },
-  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7]',                         short: 'Desap.'   },
-  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E]',                         short: 'Acopio'   },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6]',                         short: 'Ayuda'    },
-  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308]',                         short: 'Réplicas' },
-  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6]',                         short: 'Donar'    },
-  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8]',                         short: 'Int.'     },
+// Left border + oval "pill" badge per category — the pill is what renders on
+// each card/list item (bg = 10% tint, fg = darker shade of the same hue so it
+// reads on both light and dark surfaces); border/text are kept for the filter
+// bar's underline-tab styling, which stays plain text there.
+const TAG_META: Record<string, { label: string; border: string; text: string; short: string; pillBg: string; pillFg: string }> = {
+  todos:             { label: 'Todas las categorías', border: 'border-l-[#444]',       text: 'text-ink-muted dark:text-ink-muted-dark', short: 'Todas',    pillBg: 'bg-ink-muted/10',    pillFg: 'text-ink-muted dark:text-ink-muted-dark' },
+  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020]',                         short: 'Sismo',    pillBg: 'bg-[#CF1020]/10',    pillFg: 'text-[#8A0E15] dark:text-[#F09595]' },
+  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316]',                         short: 'Rescate',  pillBg: 'bg-[#F97316]/10',    pillFg: 'text-[#9A3412] dark:text-[#FDBA74]' },
+  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7]',                         short: 'Desap.',   pillBg: 'bg-[#A855F7]/10',    pillFg: 'text-[#6B21A8] dark:text-[#D8B4FE]' },
+  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E]',                         short: 'Acopio',   pillBg: 'bg-[#22C55E]/10',    pillFg: 'text-[#166534] dark:text-[#86EFAC]' },
+  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6]',                         short: 'Ayuda',    pillBg: 'bg-[#3B82F6]/10',    pillFg: 'text-[#1E40AF] dark:text-[#93C5FD]' },
+  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308]',                         short: 'Réplicas', pillBg: 'bg-[#EAB308]/10',    pillFg: 'text-[#854D0E] dark:text-[#FDE047]' },
+  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6]',                         short: 'Donar',    pillBg: 'bg-[#14B8A6]/10',    pillFg: 'text-[#115E59] dark:text-[#5EEAD4]' },
+  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8]',                         short: 'Int.',     pillBg: 'bg-[#94A3B8]/10',    pillFg: 'text-[#334155] dark:text-[#CBD5E1]' },
+}
+
+function TagPill({ tag }: { tag: string }) {
+  const meta = TAG_META[tag]
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide shrink-0 ${meta?.pillBg ?? 'bg-ink-muted/10'} ${meta?.pillFg ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
+      {meta?.short ?? tag}
+    </span>
+  )
 }
 
 const LIMIT = 30
@@ -307,6 +322,58 @@ function ResumenEvento({ cifras }: { cifras: CifrasStats | null }) {
   )
 }
 
+// Curated, magazine-style preview of one category — a bigger lead item (with
+// image) plus a plain-text headline list for the rest. Purely a different view
+// onto the same `noticias` the full grid below already has; "Ver todas" just
+// sets that grid's tag filter and scrolls to it, so there's exactly one source
+// of truth for the data and one filtering mechanism.
+function CuratedSection({
+  titulo, dotColor, items, onVerTodas,
+}: { titulo: string; dotColor: string; items: Noticia[]; onVerTodas: () => void }) {
+  const [destacada, ...resto] = items
+  if (!destacada) return null
+  return (
+    <section className="px-4 sm:px-6 py-6 border-b border-rule dark:border-rule-dark">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-serif font-semibold text-xl flex items-center gap-2.5 text-ink dark:text-ink-dark">
+          <span className={`w-2 h-2 rounded-full ${dotColor}`} aria-hidden="true" />
+          {titulo}
+        </h2>
+        <button onClick={onVerTodas} className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-crisis-red transition-colors">
+          Ver todas →
+        </button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <a href={destacada.url} target="_blank" rel="noopener noreferrer" className="lg:col-span-5 group block">
+          {destacada.imagen_url && (
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-panel dark:bg-panel-dark mb-3">
+              <NextImage src={destacada.imagen_url} alt={destacada.titulo} fill unoptimized className="object-cover" />
+            </div>
+          )}
+          <TagPill tag={destacada.tag} />
+          <h3 className="font-serif font-semibold text-xl leading-snug mt-2 group-hover:text-crisis-red transition-colors">{destacada.titulo}</h3>
+          <p className="font-mono text-xs text-ink-muted dark:text-ink-muted-dark mt-2">{fuenteLabel(destacada.fuente_tipo, destacada.fuente)} · {tiempoRelativo(destacada.publicado_at)}</p>
+        </a>
+        {resto.length > 0 && (
+          <div className="lg:col-span-7 flex flex-col">
+            {resto.map(n => (
+              <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer" className="group flex items-baseline justify-between gap-4 py-3.5 border-b border-rule dark:border-rule-dark last:border-0">
+                <div className="min-w-0">
+                  <TagPill tag={n.tag} />
+                  <h4 className="font-serif font-semibold text-[1.05rem] leading-snug mt-1.5 group-hover:text-crisis-red transition-colors">{n.titulo}</h4>
+                </div>
+                <span className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark shrink-0 whitespace-nowrap">
+                  {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const supabase = useMemo(() => createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -329,6 +396,16 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const [nuevasCount, setNuevasCount] = useState(0)
   const [statsLabel, setStatsLabel] = useState<string>('')
   const [cifras, setCifras] = useState<CifrasStats | null>(null)
+
+  // Snapshot of the first unfiltered load, used only to build the hero package
+  // and the curated category previews above the main grid. Captured once so
+  // switching tag/zona/idioma filters below doesn't reshuffle the hero — those
+  // two views (curated preview vs. full filterable grid) are intentionally
+  // independent, same underlying data.
+  const [destacadas, setDestacadas] = useState<Noticia[]>(initialData ?? [])
+  const destacadasCapturadas = useRef(Boolean(initialData?.length))
+  const filtroRef = useRef<HTMLDivElement>(null)
+  const { reduced: motionReducida } = useMotionPref()
 
   // Feature 1: copy feedback per card
   const [copiadoId, setCopiadoId] = useState<string | null>(null)
@@ -435,6 +512,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, zonaActiva, cargar])
 
   useEffect(() => {
+    if (!destacadasCapturadas.current && tagActivo === 'todos' && !query && noticias.length) {
+      setDestacadas(noticias)
+      destacadasCapturadas.current = true
+    }
+  }, [noticias, tagActivo, query])
+
+  const verTodas = useCallback((tag: string) => {
+    setTagActivo(tag)
+    requestAnimationFrame(() => {
+      filtroRef.current?.scrollIntoView({ behavior: motionReducida ? 'auto' : 'smooth', block: 'start' })
+    })
+  }, [motionReducida])
+
+  useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => setQuery(queryInput.trim()), 400)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
@@ -511,8 +602,84 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
   const tagList = Object.entries(TAG_META)
 
+  // Un único pool (`destacadas`) alimenta la galería de fotos, la portada y las
+  // secciones curadas — cada vista consume y descarta sus IDs antes de pasarle
+  // el resto a la siguiente, para que ninguna noticia se repita entre ellas.
+  const conImagen = destacadas.filter(n => n.imagen_url)
+  const galeria = conImagen.slice(0, 8)
+  const idsGaleria = new Set(galeria.map(n => n.id))
+  const restoDespuesGaleria = destacadas.filter(n => !idsGaleria.has(n.id))
+
+  const heroPrincipal = restoDespuesGaleria[0]
+  const heroSecundarias = restoDespuesGaleria.slice(1, 3)
+  const idsHero = new Set([heroPrincipal?.id, ...heroSecundarias.map(n => n.id)].filter(Boolean))
+  const restoDespuesHero = restoDespuesGaleria.filter(n => !idsHero.has(n.id))
+
+  const sismoPreview = restoDespuesHero.filter(n => n.tag === 'sismo').slice(0, 4)
+  const rescatePreview = restoDespuesHero.filter(n => n.tag === 'rescate' || n.tag === 'ayuda_humanitaria').slice(0, 4)
+
   return (
     <>
+      <GaleriaHero
+        noticias={galeria as NoticiaGaleria[]}
+        cargando={!destacadasCapturadas.current && destacadas.length === 0}
+      />
+
+      {/* Paquete de portada — nota principal + secundarias, estilo revista.
+          Se arma con la primera carga sin filtrar; el grid filtrable de abajo
+          (con su propia barra de categorías/zona/idioma/buscador) sigue siendo
+          la única fuente de datos y de paginación. */}
+      {heroPrincipal && (
+        <section className="px-4 sm:px-6 py-6 border-b border-rule dark:border-rule-dark">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <a href={heroPrincipal.url} target="_blank" rel="noopener noreferrer" className="lg:col-span-7 group block">
+              {heroPrincipal.imagen_url && (
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-panel dark:bg-panel-dark mb-4">
+                  <NextImage src={heroPrincipal.imagen_url} alt={heroPrincipal.titulo} fill unoptimized className="object-cover" />
+                </div>
+              )}
+              <TagPill tag={heroPrincipal.tag} />
+              <h1 className="font-serif font-semibold text-hero text-ink dark:text-ink-dark mt-3 group-hover:text-crisis-red transition-colors">
+                {heroPrincipal.titulo}
+              </h1>
+              {heroPrincipal.descripcion && (
+                <p className="text-lead text-ink-muted dark:text-ink-muted-dark mt-3 max-w-prose line-clamp-3">{heroPrincipal.descripcion}</p>
+              )}
+              <p className="font-mono text-xs text-ink-muted dark:text-ink-muted-dark mt-3">
+                {fuenteLabel(heroPrincipal.fuente_tipo, heroPrincipal.fuente)} · {tiempoRelativo(heroPrincipal.publicado_at)}
+              </p>
+            </a>
+            {heroSecundarias.length > 0 && (
+              <div className="lg:col-span-5 flex flex-col gap-5">
+                {heroSecundarias.map(n => (
+                  <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer" className="group flex gap-4">
+                    {n.imagen_url && (
+                      <div className="relative w-28 sm:w-32 aspect-[4/3] shrink-0 overflow-hidden bg-panel dark:bg-panel-dark">
+                        <NextImage src={n.imagen_url} alt={n.titulo} fill unoptimized className="object-cover" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <TagPill tag={n.tag} />
+                      <h3 className="font-serif font-semibold text-[1.05rem] leading-snug mt-1.5 group-hover:text-crisis-red transition-colors">{n.titulo}</h3>
+                      <p className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark mt-1">
+                        {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {sismoPreview.length > 0 && (
+        <CuratedSection titulo="Sismo" dotColor="bg-[#CF1020]" items={sismoPreview} onVerTodas={() => verTodas('sismo')} />
+      )}
+      {rescatePreview.length > 0 && (
+        <CuratedSection titulo="Rescate y ayuda humanitaria" dotColor="bg-[#F97316]" items={rescatePreview} onVerTodas={() => verTodas('rescate')} />
+      )}
+
       {/* Header compacto — una sola línea */}
       <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -556,32 +723,27 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
       <HintAcciones />
 
+      <h2 className="font-serif font-semibold text-xl text-ink dark:text-ink-dark px-4 sm:px-6 pt-6">Boletín completo</h2>
+
       {/* Barra de filtros */}
-      <div className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 pt-3">
+      <div ref={filtroRef} className="border-b border-rule dark:border-rule-dark px-4 sm:px-6 pt-3">
         {/* Row 1: tags + idioma */}
         <div className="flex items-end gap-4">
           {/* Scroll horizontal de categorías */}
           <div className="flex gap-5 overflow-x-auto scrollbar-hide flex-1 min-w-0">
-            {tagList.map(([key, { short, text }]) => {
+            {tagList.map(([key, { short, pillBg, pillFg }]) => {
               const active = tagActivo === key
               return (
                 <button
                   key={key}
                   onClick={() => setTagActivo(key)}
-                  className={`relative font-mono text-[10px] uppercase tracking-widest shrink-0 pb-2.5 transition-colors ${
+                  className={`shrink-0 font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
                     active
-                      ? text
-                      : 'text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
+                      ? `${pillBg} ${pillFg}`
+                      : 'text-ink-muted dark:text-ink-muted-dark hover:bg-rule/50 dark:hover:bg-rule-dark/50'
                   }`}
                 >
                   {short}
-                  {active && (
-                    <motion.span
-                      layoutId="feed-tag-underline"
-                      className="absolute left-0 right-0 -bottom-px h-0.5 bg-crisis-red"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    />
-                  )}
                 </button>
               )
             })}
@@ -686,7 +848,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               <AnimatePresence initial={false}>
-              {noticias.map((n, i) => {
+              {noticias.map((n) => {
                 const meta = TAG_META[n.tag]
                 return (
                   <motion.a
@@ -694,10 +856,10 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     href={n.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.03 } }}
-                    exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                     className={`
                       group block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-none
                       border-l-[3px] ${meta?.border ?? 'border-l-[#444]'}
@@ -707,9 +869,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                   >
                     {/* Primera línea: tag · tsunami · fuente · tiempo */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className={`font-mono text-[10px] uppercase tracking-widest shrink-0 ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
-                        {meta?.short ?? n.tag}
-                      </span>
+                      <TagPill tag={n.tag} />
                       {n.tsunami && (
                         <span className="font-mono text-[10px] uppercase tracking-widest text-crisis-red flex items-center gap-1" title="Alerta de tsunami">
                           <TsunamiIcon /> Tsunami
