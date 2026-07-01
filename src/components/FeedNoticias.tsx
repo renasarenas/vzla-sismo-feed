@@ -369,26 +369,42 @@ function ResumenEvento({ cifras }: { cifras: CifrasStats | null }) {
         className="w-full flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
       >
         <span>Resumen del evento</span>
-        <span>{open ? '▲' : '▼'}</span>
+        <motion.span
+          animate={{ rotate: open ? 0 : 180 }}
+          transition={{ duration: 0.2 }}
+          className="inline-block"
+        >
+          ▲
+        </motion.span>
       </button>
-      {open && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-center">
-          <div className="lg:col-span-8 grid grid-cols-2 gap-x-6 gap-y-4">
-            {datos.map(({ num, label, red }) => (
-              <div key={label} className="border-l border-rule dark:border-rule-dark pl-4 py-1">
-                <p className={`font-mono text-xl sm:text-2xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
-                <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-center">
+              <div className="lg:col-span-8 grid grid-cols-2 gap-x-6 gap-y-4">
+                {datos.map(({ num, label, red }) => (
+                  <div key={label} className="border-l border-rule dark:border-rule-dark pl-4 py-1">
+                    <p className={`font-mono text-xl sm:text-2xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
+                  </div>
+                ))}
+                <p className="col-span-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-2">
+                  {footer}
+                </p>
               </div>
-            ))}
-            <p className="col-span-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-2">
-              {footer}
-            </p>
-          </div>
-          <div className="lg:col-span-4 w-full max-w-[375px] mx-auto">
-            <MapaVenezuelaSVG />
-          </div>
-        </div>
-      )}
+              <div className="lg:col-span-4 w-full max-w-[375px] mx-auto">
+                <MapaVenezuelaSVG />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
