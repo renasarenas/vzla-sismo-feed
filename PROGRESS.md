@@ -343,7 +343,7 @@
   - Inicialización del contexto estratégico visual mediante los artefactos PRODUCT.md y DESIGN.md bajo el registro "brand".
   - **Página de donaciones**:
     - Remoción de side-stripe borders (bordes izquierdos rojos de 3px) en InsumoCard y OrgCard para eliminar malas prácticas ("AI Tells").
-    - Rediseño del Hero hacia una composición asimétrica de dos columnas con tipografía Newsreader en escala hero y fallback de carga de imagen.
+    - Restablecimiento del Hero a su diseño de fondo completo (full-bleed) original con la URL original de Wikimedia y opacidad controlada.
     - Solución del hover bug de OrgCard (fondo negro sobre texto negro en modo claro) mediante transiciones basadas en opacidad.
     - Diferenciación visual de socios locales que no disponen de URL de redirección directa.
   - **Página de estadísticas**:
@@ -356,3 +356,4 @@
 - Commits:
   - `6303c33` feat(donar): improve ui-ux and establish design system
   - `daf1f95` feat(stats): improve ui-ux and integrate casualties data
+  - `6bc3347` fix(donar): restore full-bleed background image in hero
