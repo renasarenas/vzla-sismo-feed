@@ -104,7 +104,7 @@ export function MapaSismosView({ sismos, outline, dark }: Props) {
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Map Column */}
-      <div className="flex-1 relative min-h-[50vh] lg:min-h-[72vh] h-[65vh] lg:h-[72vh] border border-rule dark:border-rule-dark bg-panel dark:bg-panel-dark overflow-hidden rounded-sm">
+      <div className="flex-1 relative isolate min-h-[50vh] lg:min-h-[72vh] h-[65vh] lg:h-[72vh] border border-rule dark:border-rule-dark bg-panel dark:bg-panel-dark overflow-hidden rounded-sm">
         <LeafletMap
           sismos={filteredSismos}
           outline={outline}

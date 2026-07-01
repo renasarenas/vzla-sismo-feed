@@ -153,7 +153,7 @@ export function Navbar() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 bg-paper/95 dark:bg-paper-dark/95 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
+    <header className="sticky top-0 z-[1000] bg-paper/95 dark:bg-paper-dark/95 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
       {/* Institutional alert rule — the single signature color cue. */}
       <div className="h-1 bg-crisis-red" />
 
