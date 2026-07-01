@@ -6,6 +6,7 @@
 export type FactCheckResult = {
   status: 'aprobado' | 'rechazado' | 'dudoso'
   tag: string | null
+  zona: string | null
   razon: string
   confianza: number
 }
@@ -38,6 +39,10 @@ Analiza el titular y descripción de la noticia y determina:
    - donaciones: cómo donar, canales de donación monetaria
    - internacional: respuesta internacional, países que ayudan, diplomacia
 
+3. Extrae la zona geográfica de Venezuela mencionada como principal afectada. Usa EXACTAMENTE uno de estos valores (o null si no aplica):
+   amazonas, anzoategui, apure, aragua, barinas, bolivar, carabobo, cojedes, delta_amacuro, distrito_capital, falcon, guarico, lara, merida, miranda, monagas, nueva_esparta, portuguesa, sucre, tachira, trujillo, vargas, yaracuy, zulia, la_guaira
+   Prioriza: yaracuy, carabobo, la_guaira, miranda, distrito_capital, trujillo.
+
 CRITERIOS DE RECHAZO:
 - Noticia de otro país o evento no relacionado
 - Cifras de muertos sin fuente oficial o muy alejadas del rango conocido
@@ -51,6 +56,7 @@ Responde SOLO con JSON, sin texto adicional:
 {
   "status": "aprobado" | "rechazado" | "dudoso",
   "tag": "sismo" | "rescate" | "desaparecidos" | "puntos_acopio" | "ayuda_humanitaria" | "replicas" | "donaciones" | "internacional" | null,
+  "zona": "amazonas" | "anzoategui" | "apure" | "aragua" | "barinas" | "bolivar" | "carabobo" | "cojedes" | "delta_amacuro" | "distrito_capital" | "falcon" | "guarico" | "lara" | "merida" | "miranda" | "monagas" | "nueva_esparta" | "portuguesa" | "sucre" | "tachira" | "trujillo" | "vargas" | "yaracuy" | "zulia" | "la_guaira" | null,
   "razon": "explicación breve en español (máx 100 chars)",
   "confianza": 0-100
 }`
@@ -94,6 +100,7 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
     return {
       status: parsed.status ?? 'dudoso',
       tag: parsed.tag ?? null,
+      zona: parsed.zona ?? null,
       razon: parsed.razon ?? 'Sin razón',
       confianza: parsed.confianza ?? 50,
     }
@@ -103,6 +110,7 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
     return {
       status: 'dudoso',
       tag: null,
+      zona: null,
       razon: 'Error en verificación automática',
       confianza: 0,
     }

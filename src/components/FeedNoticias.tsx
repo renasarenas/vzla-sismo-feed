@@ -13,6 +13,7 @@ type Noticia = {
   fuente: string
   fuente_tipo: 'rss' | 'x_twitter' | 'oficial'
   tag: string
+  zona: string | null
   idioma: 'es' | 'en'
   publicado_at: string
   factcheck_confianza: number
@@ -21,6 +22,34 @@ type Noticia = {
   isNew?: boolean
   insertedAt?: number
 }
+
+const ZONAS: { value: string; label: string }[] = [
+  { value: 'todos', label: 'Toda Venezuela' },
+  { value: 'la_guaira', label: 'La Guaira' },
+  { value: 'caracas', label: 'Caracas' },
+  { value: 'miranda', label: 'Miranda' },
+  { value: 'carabobo', label: 'Carabobo' },
+  { value: 'yaracuy', label: 'Yaracuy' },
+  { value: 'trujillo', label: 'Trujillo' },
+  { value: 'aragua', label: 'Aragua' },
+  { value: 'falcon', label: 'Falcón' },
+  { value: 'lara', label: 'Lara' },
+  { value: 'zulia', label: 'Zulia' },
+  { value: 'merida', label: 'Mérida' },
+  { value: 'tachira', label: 'Táchira' },
+  { value: 'barinas', label: 'Barinas' },
+  { value: 'portuguesa', label: 'Portuguesa' },
+  { value: 'guarico', label: 'Guárico' },
+  { value: 'anzoategui', label: 'Anzoátegui' },
+  { value: 'sucre', label: 'Sucre' },
+  { value: 'monagas', label: 'Monagas' },
+  { value: 'nueva_esparta', label: 'Nueva Esparta' },
+  { value: 'apure', label: 'Apure' },
+  { value: 'bolivar', label: 'Bolívar' },
+  { value: 'amazonas', label: 'Amazonas' },
+  { value: 'delta_amacuro', label: 'Delta Amacuro' },
+  { value: 'cojedes', label: 'Cojedes' },
+]
 
 // Color text + left border per category. No pill backgrounds.
 const TAG_META: Record<string, { label: string; border: string; text: string; short: string }> = {
@@ -248,6 +277,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
   const [noticias, setNoticias] = useState<Noticia[]>(initialData ?? [])
   const [tagActivo, setTagActivo] = useState('todos')
+  const [zonaActiva, setZonaActiva] = useState('todos')
   const [idiomaActivo, setIdiomaActivo] = useState<'todos' | 'es' | 'en'>('todos')
   const [query, setQuery] = useState('')
   const [queryInput, setQueryInput] = useState('')
@@ -309,9 +339,10 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     return () => clearInterval(id)
   }, [])
 
-  const buildUrl = useCallback((tag: string, q: string, off: number, idioma: 'todos' | 'es' | 'en') => {
+  const buildUrl = useCallback((tag: string, zona: string, q: string, off: number, idioma: 'todos' | 'es' | 'en') => {
     const p = new URLSearchParams({ limit: String(LIMIT), offset: String(off) })
     if (tag !== 'todos') p.set('tag', tag)
+    if (zona !== 'todos') p.set('zona', zona)
     if (q) p.set('q', q)
     if (idioma !== 'todos') p.set('lang', idioma)
     return `/api/feed?${p}`
@@ -322,7 +353,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     setError(null)
     setDegraded(false)
     try {
-      const res = await fetch(buildUrl(tag, q, 0, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tag, zonaActiva, q, 0, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) throw new Error(`${res.status}`)
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -339,13 +370,13 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       setCargando(false)
       setNuevasCount(0)
     }
-  }, [buildUrl, idiomaActivo])
+  }, [buildUrl, idiomaActivo, zonaActiva])
 
   const cargarMas = useCallback(async () => {
     if (cargandoMas || !hasMore) return
     setCargandoMas(true)
     try {
-      const res = await fetch(buildUrl(tagActivo, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tagActivo, zonaActiva, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) return
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -359,9 +390,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     } catch { /* ignore */ } finally {
       setCargandoMas(false)
     }
-  }, [buildUrl, tagActivo, query, offset, idiomaActivo, cargandoMas, hasMore])
+  }, [buildUrl, tagActivo, query, offset, idiomaActivo, zonaActiva, cargandoMas, hasMore])
 
-  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, cargar])
+  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, zonaActiva, cargar])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -530,6 +561,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                 {lang}
               </button>
             ))}
+          </div>
+          {/* Filtro de zona */}
+          <div className="shrink-0 pb-2">
+            <label htmlFor="zona" className="sr-only">Zona geográfica</label>
+            <select
+              id="zona"
+              value={zonaActiva}
+              onChange={e => setZonaActiva(e.target.value)}
+              className="font-mono text-[11px] uppercase tracking-widest bg-transparent text-ink dark:text-ink-dark border-b-2 border-rule dark:border-rule-dark pb-0.5 pr-6 focus:border-crisis-red focus:outline-none cursor-pointer"
+            >
+              {ZONAS.map(z => (
+                <option key={z.value} value={z.value}>{z.label}</option>
+              ))}
+            </select>
           </div>
         </div>
         {/* Row 2: buscador */}

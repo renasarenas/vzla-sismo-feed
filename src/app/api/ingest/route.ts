@@ -123,6 +123,7 @@ export async function GET(req: Request) {
           fuente_tipo: fuente.tipo,
           idioma: fuente.idioma,
           tag: resultado.tag ?? 'sismo',
+          zona: resultado.zona ?? null,
           factcheck_status: resultado.status,
           factcheck_razon: resultado.razon,
           factcheck_confianza: resultado.confianza,
