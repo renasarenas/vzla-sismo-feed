@@ -363,3 +363,4 @@
   - `6bc3347` fix(donar): restore full-bleed background image in hero
   - `7ee64b8` feat(home): improve homepage ui-ux and align with design tokens
   - `2b2d093` fix(home): move card title below image to resolve muddy hover contrast
+  - `dd0b205` fix(theme): optimize tag badge contrast with dot indicators and theme adaptive colors
