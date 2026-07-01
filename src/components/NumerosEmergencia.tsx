@@ -173,16 +173,6 @@ export function NumerosEmergencia() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes pcSlideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-pc-slide-up {
-          animation: pcSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}} />
-
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
