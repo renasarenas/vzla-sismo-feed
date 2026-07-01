@@ -58,7 +58,7 @@ export function MapaSwitcher() {
   useEffect(() => {
     supabase
       .from('noticias')
-      .select('id, titulo, url, factcheck_confianza, lat, lng')
+      .select('id, titulo, url, factcheck_confianza, tsunami, lat, lng')
       .eq('fuente_tipo', 'oficial')
       .eq('factcheck_status', 'aprobado')
       .not('lat', 'is', null)

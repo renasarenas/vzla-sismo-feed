@@ -24,6 +24,7 @@ export type Sismo = {
   titulo: string
   url: string
   factcheck_confianza: number
+  tsunami?: boolean
   lat: number
   lng: number
 }
@@ -134,7 +135,10 @@ export default function LeafletMap({ sismos, outline, dark }: Props) {
             <Popup>
               <p className="font-medium text-sm">{s.titulo}</p>
               <p className="text-xs text-gray-500">{s.factcheck_confianza}% confianza</p>
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-crisis-blue hover:underline">
+              {s.tsunami && (
+                <p className="text-xs font-semibold text-crisis-red mt-1">Alerta de tsunami</p>
+              )}
+              <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-crisis-blue hover:underline block mt-1">
                 Ver más
               </a>
             </Popup>
