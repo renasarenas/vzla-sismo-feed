@@ -792,86 +792,71 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                       ${isNuevo(n) ? 'ring-1 ring-inset ring-crisis-red/30' : ''}
                     `}
                   >
-                    {hasImage ? (
-                      // Variante con imagen: foto arriba, texto y titular abajo en el cuerpo de la tarjeta.
-                      <>
-                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel/40 dark:bg-panel-dark/20">
-                          <NextImage
-                            src={n.imagen_url as string}
-                            alt={n.titulo}
-                            fill
-                            unoptimized
-                            referrerPolicy="no-referrer"
-                            sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
-                            onError={() => setFailedImg(prev => {
-                              const s = new Set(prev)
-                              s.add(n.id)
-                              return s
-                            })}
-                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
-                          />
-                          {/* Tag chip sobre la foto */}
-                          <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              n.tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
-                              n.tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
-                              n.tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
-                              n.tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
-                              n.tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
-                              n.tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
-                              n.tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
-                              'bg-ink-muted'
-                            }`} />
-                            {meta?.short ?? n.tag}
-                          </span>
-                          {n.tsunami && (
-                            <span className="absolute top-2.5 right-2.5 font-mono text-[9px] uppercase tracking-widest text-crisis-red dark:text-[#EF4444] flex items-center gap-1 px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong rounded-sm shadow-sm backdrop-blur-sm" title="Alerta de tsunami">
-                              <TsunamiIcon /> Tsunami
-                            </span>
-                          )}
+                    {/* Header gráfico: foto o sismógrafo en placeholder */}
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel/40 dark:bg-panel-dark/20 border-b border-rule/30 dark:border-rule-dark/20">
+                      {hasImage ? (
+                        <NextImage
+                          src={n.imagen_url as string}
+                          alt={n.titulo}
+                          fill
+                          unoptimized
+                          referrerPolicy="no-referrer"
+                          sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+                          onError={() => setFailedImg(prev => {
+                            const s = new Set(prev)
+                            s.add(n.id)
+                            return s
+                          })}
+                          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
+                        />
+                      ) : (
+                        // Trazo de sismógrafo sutil en degradado editorial
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-paper/20 to-paper/60 dark:from-[#1C1C1F]/10 dark:to-[#1C1C1F]/40">
+                          <svg viewBox="0 0 64 24" className="w-20 h-10 text-rule dark:text-rule-dark/30 opacity-70 group-hover:text-crisis-red/20 group-hover:scale-105 transition-all duration-500" fill="none" aria-hidden="true" preserveAspectRatio="none">
+                            <path
+                              d="M0 12 H10 L13 12 L16 4 L19 20 L22 8 L25 16 L28 12 H40 L43 6 L46 18 L49 12 H64"
+                              stroke="currentColor"
+                              strokeWidth="1.2"
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                            />
+                          </svg>
                         </div>
-                        <div className="px-4 pt-3.5 pb-4">
-                          <div className="flex items-center gap-2 mb-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum">
-                            <span className="truncate">{fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}</span>
-                            {isNuevo(n) && <span className="ml-auto shrink-0 uppercase tracking-widest text-crisis-red">Nuevo</span>}
-                          </div>
-                          <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors mb-2">
-                            {n.titulo}
-                          </h2>
-                          {n.descripcion && (
-                            <p className="text-xs text-ink-muted dark:text-ink-muted-dark line-clamp-2">{n.descripcion}</p>
-                          )}
-                          <CardShareRow n={n} copiadoId={copiadoId} setCopiadoId={setCopiadoId} />
-                        </div>
-                      </>
-                    ) : (
-                      // Variante solo-texto: noticias sin imagen o con imagen fallida.
-                      <div className="p-4">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className={`font-mono text-[10px] uppercase tracking-widest shrink-0 ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
-                            {meta?.short ?? n.tag}
-                          </span>
-                          {n.tsunami && (
-                            <span className="font-mono text-[10px] uppercase tracking-widest text-crisis-red flex items-center gap-1" title="Alerta de tsunami">
-                              <TsunamiIcon /> Tsunami
-                            </span>
-                          )}
-                          <span className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum truncate text-right ml-auto">
-                            {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
-                          </span>
-                        </div>
-                        <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors mb-2">
-                          {n.titulo}
-                        </h2>
-                        {n.descripcion && (
-                          <p className="text-xs text-ink-muted dark:text-ink-muted-dark line-clamp-2">{n.descripcion}</p>
-                        )}
-                        {isNuevo(n) && (
-                          <span className="inline-block mt-1.5 font-mono text-[10px] uppercase tracking-widest text-crisis-red">Nuevo</span>
-                        )}
-                        <CardShareRow n={n} copiadoId={copiadoId} setCopiadoId={setCopiadoId} />
+                      )}
+                      {/* Tag chip sobre la foto/placeholder */}
+                      <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          n.tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
+                          n.tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
+                          n.tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
+                          n.tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
+                          n.tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
+                          n.tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
+                          n.tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
+                          'bg-ink-muted'
+                        }`} />
+                        {meta?.short ?? n.tag}
+                      </span>
+                      {n.tsunami && (
+                        <span className="absolute top-2.5 right-2.5 font-mono text-[9px] uppercase tracking-widest text-crisis-red dark:text-[#EF4444] flex items-center gap-1 px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong rounded-sm shadow-sm backdrop-blur-sm" title="Alerta de tsunami">
+                          <TsunamiIcon /> Tsunami
+                        </span>
+                      )}
+                    </div>
+                    {/* Cuerpo de la tarjeta */}
+                    <div className="px-4 pt-3.5 pb-4">
+                      <div className="flex items-center gap-2 mb-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum">
+                        <span className="truncate">{fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}</span>
+                        {isNuevo(n) && <span className="ml-auto shrink-0 uppercase tracking-widest text-crisis-red">Nuevo</span>}
                       </div>
-                    )}
+                      <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors mb-2">
+                        {n.titulo}
+                      </h2>
+                      {n.descripcion && (
+                        <p className="text-xs text-ink-muted dark:text-ink-muted-dark line-clamp-2">{n.descripcion}</p>
+                      )}
+                      <CardShareRow n={n} copiadoId={copiadoId} setCopiadoId={setCopiadoId} />
+                    </div>
                   </motion.a>
                 )
               })}
