@@ -357,7 +357,7 @@
   - Corrección de contrastes WCAG AA (>=4.5:1) en textos secundarios sobre fondo paper en todas las páginas.
   - **Botón y modal de emergencias**: Rediseño de UI/UX del botón flotante (FAB) y del modal del directorio telefónico usando tokens semánticos oficiales y transiciones fluidas de `framer-motion` (deslizamiento bottom-sheet en móviles, fade-scale en desktop, scroll lock y soporte de tecla Escape para cerrar).
   - **Corrección de Regresión en Controles e Hydration**: Solucionado un problema de sincronía en la hidratación (race condition) de Next.js que causaba que el portal de botones de la Navbar (`id="navbar-feed-actions"`) se inicializara en `null` en desktop (ocultando los botones de alertas y exportar). Asimismo, se resguardó el renderizado del FAB de emergencias en el cliente para prevenir discrepancias de hidratación con las animaciones de Framer Motion.
-  - **Recuperación del servidor de desarrollo (dev server)**: Solucionado un error 500 de webpack (`Cannot find module './948.js'`) generado por corrupción en la caché interna de Next.js, purgando completamente el directorio `.next` y relanzando el servidor local de desarrollo.
+  - **Resolución de Conflicto en Puerto 3000**: Detectado y finalizado un proceso huérfano de Node (PID 29416) que mantenía ocupado el puerto 3000 sirviendo una caché de código desactualizada. Se relanzó el servidor local de desarrollo (`npm run dev`) de forma limpia en el puerto 3000.
 - Verification:
   - Compilación limpia de producción y análisis de tipos pasados con éxito (`npm run build`).
   - Servidor de desarrollo relanzado con éxito tras purgado de caché y respondiendo con código 200 en `/api/feed`.
