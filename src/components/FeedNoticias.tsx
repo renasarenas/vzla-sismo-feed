@@ -56,14 +56,14 @@ const ZONAS: { value: string; label: string }[] = [
 // Color text + left border per category. No pill backgrounds.
 const TAG_META: Record<string, { label: string; border: string; text: string; short: string }> = {
   todos:             { label: 'Todas las categorías', border: 'border-l-[#444]',       text: 'text-ink-muted dark:text-ink-muted-dark', short: 'Todas'    },
-  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020]',                         short: 'Sismo'    },
-  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316]',                         short: 'Rescate'  },
-  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7]',                         short: 'Desap.'   },
-  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E]',                         short: 'Acopio'   },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6]',                         short: 'Ayuda'    },
-  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308]',                         short: 'Réplicas' },
-  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6]',                         short: 'Donar'    },
-  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8]',                         short: 'Int.'     },
+  sismo:             { label: 'Sismo',                border: 'border-l-[#CF1020]',    text: 'text-[#CF1020] dark:text-[#EF4444]',                         short: 'Sismo'    },
+  rescate:           { label: 'Rescate',              border: 'border-l-[#F97316]',    text: 'text-[#F97316] dark:text-[#FB923C]',                         short: 'Rescate'  },
+  desaparecidos:     { label: 'Desaparecidos',        border: 'border-l-[#A855F7]',    text: 'text-[#A855F7] dark:text-[#C084FC]',                         short: 'Desap.'   },
+  puntos_acopio:     { label: 'Puntos de acopio',     border: 'border-l-[#22C55E]',    text: 'text-[#22C55E] dark:text-[#4ADE80]',                         short: 'Acopio'   },
+  ayuda_humanitaria: { label: 'Ayuda humanitaria',    border: 'border-l-[#3B82F6]',    text: 'text-[#3B82F6] dark:text-[#60A5FA]',                         short: 'Ayuda'    },
+  replicas:          { label: 'Réplicas',             border: 'border-l-[#EAB308]',    text: 'text-[#EAB308] dark:text-[#FACC15]',                         short: 'Réplicas' },
+  donaciones:        { label: 'Donaciones',           border: 'border-l-[#14B8A6]',    text: 'text-[#14B8A6] dark:text-[#2DD4BF]',                         short: 'Donar'    },
+  internacional:     { label: 'Internacional',        border: 'border-l-[#94A3B8]',    text: 'text-[#94A3B8] dark:text-[#CBD5E1]',                         short: 'Int.'     },
 }
 
 const LIMIT = 30
@@ -795,7 +795,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     {hasImage ? (
                       // Variante con imagen: foto arriba, texto y titular abajo en el cuerpo de la tarjeta.
                       <>
-                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-rule/40 dark:bg-[#0D0D0D]">
+                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel/40 dark:bg-panel-dark/20">
                           <NextImage
                             src={n.imagen_url as string}
                             alt={n.titulo}
@@ -811,11 +811,21 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
                           />
                           {/* Tag chip sobre la foto */}
-                          <span className={`absolute top-2.5 left-2.5 font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 bg-panel/80 dark:bg-panel-dark/80 backdrop-blur-sm ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
+                          <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              n.tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
+                              n.tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
+                              n.tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
+                              n.tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
+                              n.tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
+                              n.tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
+                              n.tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
+                              'bg-ink-muted'
+                            }`} />
                             {meta?.short ?? n.tag}
                           </span>
                           {n.tsunami && (
-                            <span className="absolute top-2.5 right-2.5 font-mono text-[10px] uppercase tracking-widest text-crisis-red flex items-center gap-1 px-1.5 py-0.5 bg-panel/80 dark:bg-panel-dark/80 backdrop-blur-sm" title="Alerta de tsunami">
+                            <span className="absolute top-2.5 right-2.5 font-mono text-[9px] uppercase tracking-widest text-crisis-red dark:text-[#EF4444] flex items-center gap-1 px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong rounded-sm shadow-sm backdrop-blur-sm" title="Alerta de tsunami">
                               <TsunamiIcon /> Tsunami
                             </span>
                           )}
