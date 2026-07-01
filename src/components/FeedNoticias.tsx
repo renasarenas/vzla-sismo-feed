@@ -793,8 +793,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     `}
                   >
                     {hasImage ? (
-                      // Variante hero: foto arriba, scrim que la funde hacia el
-                      // color del panel, y el titular sobre esa zona oscura.
+                      // Variante con imagen: foto arriba, texto y titular abajo en el cuerpo de la tarjeta.
                       <>
                         <div className="relative aspect-[16/10] w-full overflow-hidden bg-rule/40 dark:bg-[#0D0D0D]">
                           <NextImage
@@ -811,8 +810,6 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             })}
                             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
                           />
-                          {/* Scrim: garantiza contraste del titular sin depender de que la foto sea oscura. */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-panel via-panel/80 to-transparent dark:from-panel-dark dark:via-panel-dark/80" />
                           {/* Tag chip sobre la foto */}
                           <span className={`absolute top-2.5 left-2.5 font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 bg-panel/80 dark:bg-panel-dark/80 backdrop-blur-sm ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
                             {meta?.short ?? n.tag}
@@ -822,16 +819,15 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                               <TsunamiIcon /> Tsunami
                             </span>
                           )}
-                          {/* Titular sobre la zona oscura del scrim */}
-                          <h2 className="absolute inset-x-0 bottom-0 px-4 pb-3 font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors">
-                            {n.titulo}
-                          </h2>
                         </div>
-                        <div className="px-4 pt-2.5 pb-4">
-                          <div className="flex items-center gap-2 mb-1.5 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum">
+                        <div className="px-4 pt-3.5 pb-4">
+                          <div className="flex items-center gap-2 mb-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum">
                             <span className="truncate">{fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}</span>
                             {isNuevo(n) && <span className="ml-auto shrink-0 uppercase tracking-widest text-crisis-red">Nuevo</span>}
                           </div>
+                          <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors mb-2">
+                            {n.titulo}
+                          </h2>
                           {n.descripcion && (
                             <p className="text-xs text-ink-muted dark:text-ink-muted-dark line-clamp-2">{n.descripcion}</p>
                           )}
