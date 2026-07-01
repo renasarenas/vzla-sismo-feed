@@ -173,7 +173,7 @@ export const FUENTES: Source[] = [
   // x_twitter: sin entradas — instancias públicas de Nitter caídas, no ingresan datos
 ]
 
-// Keywords mínimos para pre-filtrar antes de enviar a Claude
+// Keywords mínimos para pre-filtrar antes de enviar a Groq
 // (evitar gastar tokens en noticias obvias de otros temas)
 export const KEYWORDS_REQUERIDOS = [
   // Español

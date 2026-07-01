@@ -12,7 +12,7 @@ create table if not exists noticias (
     'replicas', 'donaciones', 'internacional'
   )),
 
-  -- Fact-checking via Claude
+  -- Fact-checking via Groq (llama-3.3-70b)
   factcheck_status text not null default 'pendiente'
     check (factcheck_status in ('pendiente', 'aprobado', 'rechazado', 'dudoso')),
   factcheck_razon text,

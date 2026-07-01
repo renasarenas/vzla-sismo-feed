@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
 import { isSupabaseConfigured, supabaseDegradedResponse } from '@/lib/env'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,9 @@ const ZONAS_VALIDAS = [
 ]
 
 export async function GET(req: NextRequest) {
+  if (!checkRateLimit(getClientIp(req), 60, 60_000)) {
+    return new Response('Too many requests', { status: 429 })
+  }
   if (!isSupabaseConfigured()) return supabaseDegradedResponse()
 
   const supabase = createClient(
@@ -42,7 +46,10 @@ export async function GET(req: NextRequest) {
       .not('imagen_url', 'is', null)
       .order('publicado_at', { ascending: false })
       .limit(8)
-    if (error) return Response.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('[feed] Error galeria:', error.message)
+      return Response.json({ error: 'No se pudo cargar el feed' }, { status: 500 })
+    }
     return Response.json({ noticias: data ?? [] }, {
       headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
     })
@@ -68,7 +75,10 @@ export async function GET(req: NextRequest) {
     .order('publicado_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (error) return Response.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[feed] Error:', error.message)
+    return Response.json({ error: 'No se pudo cargar el feed' }, { status: 500 })
+  }
 
   return Response.json({ noticias: data ?? [], total: count ?? 0 }, {
     headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },

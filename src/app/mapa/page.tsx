@@ -8,10 +8,8 @@ const MapaSwitcher = nextDynamic(
 )
 
 export default function MapaPage() {
-  return (
-    <>
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <MapaSwitcher />
-    </>
-  )
+  // Leaflet's CSS is self-hosted via an import in src/app/layout.tsx (bundled
+  // from node_modules), not a CDN <link> — the app's CSP restricts style-src to
+  // 'self', which would block a unpkg stylesheet.
+  return <MapaSwitcher />
 }

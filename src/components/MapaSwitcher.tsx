@@ -58,7 +58,7 @@ export function MapaSwitcher() {
   useEffect(() => {
     supabase
       .from('noticias')
-      .select('id, titulo, url, factcheck_confianza, tsunami, lat, lng')
+      .select('id, titulo, url, factcheck_confianza, tsunami, lat, lng, zona')
       .eq('fuente_tipo', 'oficial')
       .eq('factcheck_status', 'aprobado')
       .not('lat', 'is', null)
@@ -96,7 +96,8 @@ export function MapaSwitcher() {
         </p>
       </header>
 
-      <div className="flex items-end justify-between border-b border-rule dark:border-rule-dark">
+      {/* Tabs Menu */}
+      <div className="flex items-end justify-between border-b border-rule dark:border-rule-dark mb-6">
         <div role="tablist" aria-label="Vistas del mapa" className="flex gap-8">
           {TABS.map((tab) => {
             const active = view === tab.id
@@ -106,7 +107,7 @@ export function MapaSwitcher() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setView(tab.id)}
-                className="group relative pb-3 pt-1 text-left outline-none"
+                className="group relative pb-3 pt-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-crisis-red focus-visible:ring-offset-2 focus-visible:ring-offset-paper dark:focus-visible:ring-offset-paper-dark rounded-sm transition-all min-h-[44px]"
               >
                 <span
                   className={`block text-small font-semibold transition-colors ${
@@ -117,7 +118,7 @@ export function MapaSwitcher() {
                 >
                   {tab.label}
                 </span>
-                <span className="block text-caption text-ink-muted dark:text-ink-muted-dark">{tab.meta}</span>
+                <span className="block text-caption text-ink-muted dark:text-ink-muted-dark mt-0.5">{tab.meta}</span>
                 {active && (
                   <motion.span
                     layoutId="mapTabUnderline"
@@ -134,7 +135,7 @@ export function MapaSwitcher() {
         </span>
       </div>
 
-      <div className="mt-6">
+      <div>
         {view === '2d' && <MapaSismosView sismos={sismos} outline={outline} dark={dark} />}
         {/* Kept mounted after first visit; hidden (not unmounted) to avoid reloading the scene. */}
         <div className={view === '3d' ? 'block' : 'hidden'}>{seen3d && <MapaEdificios3DView />}</div>

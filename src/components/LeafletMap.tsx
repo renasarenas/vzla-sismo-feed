@@ -6,7 +6,7 @@
 // dynamic chunks left markers half-initialized when React StrictMode's mount→unmount→
 // remount cycle hit mid-load, crashing Leaflet's internal removeIcon.
 import { useEffect, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, Circle } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, Circle, useMap } from 'react-leaflet'
 import L from 'leaflet'
 
 const LIGHT_TILES = {
@@ -27,6 +27,7 @@ export type Sismo = {
   tsunami?: boolean
   lat: number
   lng: number
+  zona?: string | null
 }
 
 function parseMag(titulo: string): number {
@@ -66,13 +67,44 @@ function ensureDefaultIcon() {
   defaultIconReady = true
 }
 
+function ChangeView({ selectedSismo }: { selectedSismo: Sismo | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (selectedSismo) {
+      map.flyTo([selectedSismo.lat, selectedSismo.lng], 9, {
+        animate: true,
+        duration: 1.5,
+      })
+    }
+  }, [selectedSismo, map])
+  return null
+}
+
+// Leaflet caches the container's pixel size when the map initializes. Mounting
+// via next/dynamic (and toggling the 2D/3D tab) can init the map while the
+// container is still 0/partial height, so it paints tiles for only that stale
+// area. Recompute right after mount and on every container resize.
+function InvalidateSize() {
+  const map = useMap()
+  useEffect(() => {
+    const fix = () => map.invalidateSize()
+    const t = setTimeout(fix, 200)
+    const ro = new ResizeObserver(fix)
+    ro.observe(map.getContainer())
+    return () => { clearTimeout(t); ro.disconnect() }
+  }, [map])
+  return null
+}
+
 type Props = {
   sismos: Sismo[]
   outline: GeoJSON.GeoJsonObject | null
   dark: boolean
+  selectedSismo: Sismo | null
+  onSelectSismo: (sismo: Sismo | null) => void
 }
 
-export default function LeafletMap({ sismos, outline, dark }: Props) {
+export default function LeafletMap({ sismos, outline, dark, selectedSismo, onSelectSismo }: Props) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -91,8 +123,15 @@ export default function LeafletMap({ sismos, outline, dark }: Props) {
     <MapContainer
       center={[10.48, -66.90]}
       zoom={6}
-      style={{ height: '100%', width: '100%' }}
+      // Absolute-fill the (relative) wrapper instead of height:100%. As a flex
+      // item the wrapper's height is "indefinite" for percentage resolution, so
+      // height:100% collapsed the map to 0px once Leaflet's own CSS applied.
+      // inset:0 sizes it off the wrapper's box directly, sidestepping that.
+      className="!absolute inset-0"
+      style={{ width: '100%', height: '100%' }}
     >
+      <ChangeView selectedSismo={selectedSismo} />
+      <InvalidateSize />
       <TileLayer
         attribution={dark ? DARK_TILES.attribution : LIGHT_TILES.attribution}
         url={dark ? DARK_TILES.url : LIGHT_TILES.url}
@@ -131,16 +170,32 @@ export default function LeafletMap({ sismos, outline, dark }: Props) {
         // undefined and crashes _initIcon. Omit the prop entirely so the default applies.
         const iconProp = icon ? { icon } : {}
         return (
-          <Marker key={s.id} position={[s.lat, s.lng]} {...iconProp}>
+          <Marker
+            key={s.id}
+            position={[s.lat, s.lng]}
+            {...iconProp}
+            eventHandlers={{
+              click: () => onSelectSismo(s)
+            }}
+          >
             <Popup>
-              <p className="font-medium text-sm">{s.titulo}</p>
-              <p className="text-xs text-gray-500">{s.factcheck_confianza}% confianza</p>
-              {s.tsunami && (
-                <p className="text-xs font-semibold text-crisis-red mt-1">Alerta de tsunami</p>
-              )}
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-crisis-blue hover:underline block mt-1">
-                Ver más
-              </a>
+              <div className="font-sans">
+                <p className="font-semibold text-sm text-ink dark:text-ink-dark leading-tight">{s.titulo}</p>
+                <p className="text-xs text-ink-muted dark:text-ink-muted-dark mt-1">
+                  Confianza: <span className="font-semibold text-ink dark:text-ink-dark">{s.factcheck_confianza}%</span>
+                </p>
+                {s.tsunami && (
+                  <p className="text-xs font-bold text-crisis-red mt-1">⚠️ Alerta de tsunami</p>
+                )}
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-crisis-blue dark:text-crisis-blue-light hover:underline font-semibold block mt-2"
+                >
+                  Ver reporte oficial
+                </a>
+              </div>
             </Popup>
           </Marker>
         )

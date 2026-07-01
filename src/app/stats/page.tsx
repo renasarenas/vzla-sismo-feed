@@ -2,28 +2,42 @@
 
 import { useEffect, useState } from 'react'
 
-type TagInfo = { label: string; hex: string; pillBg: string; pillFg: string; bar: string }
-
-const TAG_META: Record<string, TagInfo> = {
-  sismo:             { label: 'Sismo',             hex: '#CF1020', pillBg: 'bg-[#CF1020]/10', pillFg: 'text-[#8A0E15] dark:text-[#F09595]', bar: 'bg-[#CF1020]' },
-  rescate:           { label: 'Rescate',           hex: '#6B3A52', pillBg: 'bg-[#6B3A52]/10', pillFg: 'text-[#4A2839] dark:text-[#D9A8BE]', bar: 'bg-[#6B3A52]' },
-  desaparecidos:     { label: 'Desaparecidos',     hex: '#B5502E', pillBg: 'bg-[#B5502E]/10', pillFg: 'text-[#7A3720] dark:text-[#E3A98D]', bar: 'bg-[#B5502E]' },
-  puntos_acopio:     { label: 'Puntos de acopio',  hex: '#5C7A4A', pillBg: 'bg-[#5C7A4A]/10', pillFg: 'text-[#3F5433] dark:text-[#B8CBA8]', bar: 'bg-[#5C7A4A]' },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria', hex: '#3D5A73', pillBg: 'bg-[#3D5A73]/10', pillFg: 'text-[#2A3F50] dark:text-[#A9C1D2]', bar: 'bg-[#3D5A73]' },
-  replicas:          { label: 'Réplicas',          hex: '#A67C2E', pillBg: 'bg-[#A67C2E]/10', pillFg: 'text-[#755720] dark:text-[#E0C48C]', bar: 'bg-[#A67C2E]' },
-  donaciones:        { label: 'Donaciones',        hex: '#3E7C6E', pillBg: 'bg-[#3E7C6E]/10', pillFg: 'text-[#2B564C] dark:text-[#A6D2C5]', bar: 'bg-[#3E7C6E]' },
-  internacional:     { label: 'Internacional',     hex: '#8A8378', pillBg: 'bg-[#8A8378]/10', pillFg: 'text-[#5F5A52] dark:text-[#D9D4C9]', bar: 'bg-[#8A8378]' },
+const TAG_COLORS: Record<string, string> = {
+  sismo: '#CF1020',
+  rescate: '#F97316',
+  desaparecidos: '#A855F7',
+  puntos_acopio: '#22C55E',
+  ayuda_humanitaria: '#3B82F6',
+  replicas: '#EAB308',
+  donaciones: '#14B8A6',
+  internacional: '#94A3B8',
 }
 
-type CifraCampo = { valor: number | null; at: string | null; fuente: string | null }
+const TAG_META: Record<string, { label: string }> = {
+  sismo:             { label: 'Sismo' },
+  rescate:           { label: 'Rescate' },
+  desaparecidos:     { label: 'Desaparecidos' },
+  puntos_acopio:     { label: 'Puntos de acopio' },
+  ayuda_humanitaria: { label: 'Ayuda humanitaria' },
+  replicas:          { label: 'Réplicas' },
+  donaciones:        { label: 'Donaciones' },
+  internacional:     { label: 'Internacional' },
+}
+
 type Stats = {
   total_aprobadas: number
   por_tag: Record<string, number>
   ultima_at: string | null
   cifras: {
-    muertos: number | null; muertos_at: string | null; muertos_fuente: string | null
-    heridos: number | null; heridos_at: string | null; heridos_fuente: string | null
-    desaparecidos: number | null; desaparecidos_at: string | null; desaparecidos_fuente: string | null
+    muertos: number | null
+    muertos_at: string | null
+    muertos_fuente: string | null
+    heridos: number | null
+    heridos_at: string | null
+    heridos_fuente: string | null
+    desaparecidos: number | null
+    desaparecidos_at: string | null
+    desaparecidos_fuente: string | null
   } | null
 }
 
@@ -38,34 +52,24 @@ function tiempoRelativo(iso: string | null): string {
   return `hace ${Math.floor(h / 24)}d`
 }
 
-function CifraCard({ label, campo, colorText }: { label: string; campo: CifraCampo; colorText: string }) {
-  return (
-    <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] border-l-crisis-red p-5">
-      <p className={`font-serif text-4xl sm:text-5xl font-semibold tnum ${colorText}`}>
-        {campo.valor != null ? campo.valor.toLocaleString('es-VE') : '—'}
-      </p>
-      <p className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mt-2">{label}</p>
-      {campo.at && (
-        <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-2">
-          {campo.fuente ? `${campo.fuente} · ` : ''}{tiempoRelativo(campo.at)}
-        </p>
-      )}
-    </div>
-  )
-}
-
 // Pure-CSS donut (conic-gradient) so the category mix reads at a glance instead
-// of as a column of numbers — no charting library needed for one ring.
+// of as a column of numbers — no charting library needed for one ring. Uses the
+// same TAG_COLORS dots as the section table below so both read as one palette.
 function DonaCategorias({ porTag, total }: { porTag: Record<string, number>; total: number }) {
-  const entries = Object.entries(TAG_META).map(([tag, meta]) => ({ tag, meta, count: porTag[tag] ?? 0 }))
+  const entries = Object.entries(TAG_META).map(([tag, { label }]) => ({
+    tag,
+    label,
+    hex: TAG_COLORS[tag] ?? '#94A3B8',
+    count: porTag[tag] ?? 0,
+  }))
   let acc = 0
-  const stops = entries.map(({ meta, count }) => {
+  const stops = entries.map(({ hex, count }) => {
     const pct = total > 0 ? (count / total) * 100 : 0
     const start = acc
     acc += pct
-    return `${meta.hex} ${start}% ${acc}%`
+    return `${hex} ${start}% ${acc}%`
   })
-  const gradient = total > 0 ? `conic-gradient(${stops.join(', ')})` : 'conic-gradient(var(--tw-gradient-stops, #E2E1DC) 0% 100%)'
+  const gradient = total > 0 ? `conic-gradient(${stops.join(', ')})` : 'conic-gradient(#9CA3AF 0% 100%)'
 
   return (
     <div className="flex items-center gap-8 flex-wrap">
@@ -76,16 +80,16 @@ function DonaCategorias({ porTag, total }: { porTag: Record<string, number>; tot
         aria-label="Distribución de reportes por categoría"
       >
         <div className="absolute inset-[18%] rounded-full bg-paper dark:bg-paper-dark flex flex-col items-center justify-center">
-          <span className="font-serif text-2xl font-semibold tnum">{total}</span>
+          <span className="font-serif text-2xl font-semibold tnum text-ink dark:text-ink-dark">{total}</span>
           <span className="text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">reportes</span>
         </div>
       </div>
       <ul className="flex-1 min-w-[220px] grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-        {entries.filter(e => e.count > 0).map(({ tag, meta, count }) => (
+        {entries.filter(e => e.count > 0).map(({ tag, label, hex, count }) => (
           <li key={tag} className="flex items-center justify-between gap-3 text-small">
             <span className="flex items-center gap-2 min-w-0">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: meta.hex }} aria-hidden="true" />
-              <span className="truncate text-ink dark:text-ink-dark">{meta.label}</span>
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: hex }} aria-hidden="true" />
+              <span className="truncate text-ink dark:text-ink-dark">{label}</span>
             </span>
             <span className="font-mono text-ink-muted dark:text-ink-muted-dark tnum shrink-0">
               {count} · {total > 0 ? Math.round((count / total) * 100) : 0}%
@@ -99,77 +103,203 @@ function DonaCategorias({ porTag, total }: { porTag: Record<string, number>; tot
 
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [tick, setTick] = useState(0) // forces the "hace Xm" labels to re-render between fetches
+  // tick forces the "hace Xm" labels to re-render between fetches
+  const [tick, setTick] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
     const load = async () => {
       try {
-        const res = await fetch('/api/stats', { signal: controller.signal })
+        const res = await fetch('/api/stats', { cache: 'no-store', signal: controller.signal })
         if (res.ok) setStats(await res.json())
-      } catch { /* keep last known good stats */ } finally {
-        setLoading(false)
-      }
+      } catch { /* keep last known good stats */ }
     }
     load()
     const refreshId = setInterval(load, 30_000)
     const tickId = setInterval(() => setTick(t => t + 1), 30_000)
     return () => { controller.abort(); clearInterval(refreshId); clearInterval(tickId) }
   }, [])
+  void tick // referenced only to trigger periodic re-render of relative timestamps
 
   const total = stats?.total_aprobadas ?? 0
   const porTag = stats?.por_tag ?? {}
-  const cifras = stats?.cifras
-  void tick // referenced only to trigger the periodic re-render for relative timestamps
+  const cifras = stats?.cifras ?? null
+  const ultimaAt = stats?.ultima_at ?? null
+  const maxTag = Math.max(...Object.values(porTag), 1)
+  const tagEntries = Object.entries(TAG_META)
 
   return (
-    <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14">
-      <header className="border-b-2 border-ink dark:border-ink-dark pb-6 mb-8 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <p className="text-eyebrow uppercase text-crisis-red mb-3">Indicadores del boletín</p>
-          <h1 className="font-serif text-display text-ink dark:text-ink-dark">Reportes verificados por sección</h1>
-          <p className="text-lead text-ink-muted dark:text-ink-muted-dark mt-3 max-w-prose">
-            Distribución de los reportes confirmados desde el sismo del 24 de junio de 2026.
-          </p>
+    <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-16">
+      {/* Header */}
+      <header className="border-b border-rule dark:border-rule-dark pb-6 mb-10">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-crisis-red mb-3 font-semibold">
+            Monitoreo e Indicadores
+          </div>
+          <div className="flex items-center gap-2 shrink-0 font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
+            <span className={`w-1.5 h-1.5 rounded-full bg-crisis-red ${stats ? 'animate-pulse' : ''}`} />
+            Actualiza solo · última {tiempoRelativo(ultimaAt)}
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
-          <span className={`w-1.5 h-1.5 rounded-full bg-crisis-red ${loading ? '' : 'animate-pulse'}`} />
-          Actualiza solo · última {tiempoRelativo(stats?.ultima_at ?? null)}
-        </div>
+        <h1 className="font-serif text-hero lg:text-masthead text-ink dark:text-ink-dark leading-none">
+          Reportes verificados por sección
+        </h1>
+        <p className="text-lead text-ink/75 dark:text-ink-dark/75 mt-4 max-w-prose">
+          Distribución de los reportes confirmados y balance oficial de daños desde el sismo del 24 de junio de 2026.
+        </p>
       </header>
 
-      {/* Cifras del evento — mismos datos que el boletín, cifra más alta reportada
-          por fuentes verificadas, no un conteo aparte. */}
-      {cifras && (
-        <section className="mb-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <CifraCard label="Muertos (aprox.)" colorText="text-crisis-red" campo={{ valor: cifras.muertos, at: cifras.muertos_at, fuente: cifras.muertos_fuente }} />
-          <CifraCard label="Heridos" colorText="text-crisis-red" campo={{ valor: cifras.heridos, at: cifras.heridos_at, fuente: cifras.heridos_fuente }} />
-          <CifraCard label="Desaparecidos" colorText="text-crisis-red" campo={{ valor: cifras.desaparecidos, at: cifras.desaparecidos_at, fuente: cifras.desaparecidos_fuente }} />
+      {/* Balance de víctimas (si existen cifras cargadas) */}
+      {cifras && (cifras.muertos !== null || cifras.heridos !== null || cifras.desaparecidos !== null) && (
+        <section className="mb-14">
+          <div className="flex flex-col mb-6">
+            <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+              Balance oficial de daños
+            </h2>
+            <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+              Últimas cifras consolidadas extraídas de boletines oficiales de organismos de socorro.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Fallecidos */}
+            <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-5 rounded-sm flex flex-col justify-between shadow-soft">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark bg-paper dark:bg-paper-dark px-1.5 py-0.5 rounded-sm">
+                  Fallecidos
+                </span>
+                <p className="font-serif text-hero lg:text-display text-ink dark:text-ink-dark mt-4 mb-2 font-semibold tnum">
+                  {cifras.muertos !== null ? Intl.NumberFormat('es-VE').format(cifras.muertos) : '—'}
+                </p>
+              </div>
+              {cifras.muertos_fuente && (
+                <div className="font-mono text-[9px] text-ink-muted/80 dark:text-ink-muted-dark/80 uppercase tracking-wider">
+                  Fuente: {cifras.muertos_fuente} · {tiempoRelativo(cifras.muertos_at)}
+                </div>
+              )}
+            </div>
+
+            {/* Heridos */}
+            <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-5 rounded-sm flex flex-col justify-between shadow-soft">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark bg-paper dark:bg-paper-dark px-1.5 py-0.5 rounded-sm">
+                  Heridos
+                </span>
+                <p className="font-serif text-hero lg:text-display text-ink dark:text-ink-dark mt-4 mb-2 font-semibold tnum">
+                  {cifras.heridos !== null ? Intl.NumberFormat('es-VE').format(cifras.heridos) : '—'}
+                </p>
+              </div>
+              {cifras.heridos_fuente && (
+                <div className="font-mono text-[9px] text-ink-muted/80 dark:text-ink-muted-dark/80 uppercase tracking-wider">
+                  Fuente: {cifras.heridos_fuente} · {tiempoRelativo(cifras.heridos_at)}
+                </div>
+              )}
+            </div>
+
+            {/* Desaparecidos */}
+            <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-5 rounded-sm flex flex-col justify-between shadow-soft">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark bg-paper dark:bg-paper-dark px-1.5 py-0.5 rounded-sm">
+                  Desaparecidos
+                </span>
+                <p className="font-serif text-hero lg:text-display text-ink dark:text-ink-dark mt-4 mb-2 font-semibold tnum">
+                  {cifras.desaparecidos !== null ? Intl.NumberFormat('es-VE').format(cifras.desaparecidos) : '—'}
+                </p>
+              </div>
+              {cifras.desaparecidos_fuente && (
+                <div className="font-mono text-[9px] text-ink-muted/80 dark:text-ink-muted-dark/80 uppercase tracking-wider">
+                  Fuente: {cifras.desaparecidos_fuente} · {tiempoRelativo(cifras.desaparecidos_at)}
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
-      <section className="mb-12 border-b border-rule dark:border-rule-dark pb-10">
-        <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-5">Reportes verificados en total</h2>
+      {/* Resumen del Boletín */}
+      <section className="mb-14">
+        <div className="flex flex-col mb-6">
+          <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+            Reportes en el sistema
+          </h2>
+          <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+            Cantidad total de informaciones verificadas y consolidadas por el boletín.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-6 rounded-sm flex justify-between items-center shadow-soft">
+            <div>
+              <p className="font-serif text-[clamp(3.5rem,10vw,5.5rem)] leading-none font-semibold text-ink dark:text-ink-dark tnum">
+                {total}
+              </p>
+              <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted/90 dark:text-ink-muted-dark/90 mt-3 font-semibold">
+                Total de reportes aprobados
+              </p>
+            </div>
+          </div>
+          <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-6 rounded-sm flex flex-col justify-center shadow-soft">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mb-2">
+              Último reporte verificado
+            </span>
+            <p className="font-serif text-headline text-ink dark:text-ink-dark">
+              {tiempoRelativo(ultimaAt)}
+            </p>
+            <span className="font-mono text-[8px] text-ink-muted/70 dark:text-ink-muted-dark/70 uppercase tracking-widest mt-2">
+              Ingesta automática cada 5 minutos
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Mezcla por categoría — donut de un vistazo */}
+      <section className="mb-14">
+        <div className="flex flex-col mb-6">
+          <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+            Mezcla por categoría
+          </h2>
+          <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+            Proporción de los reportes verificados según su categoría temática.
+          </p>
+        </div>
         <DonaCategorias porTag={porTag} total={total} />
       </section>
 
-      <section>
-        <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Distribución por sección</h2>
-        <div className="border-t border-ink dark:border-ink-dark">
-          {Object.entries(TAG_META).map(([tag, meta]) => {
+      {/* Tabla por sección */}
+      <section className="mb-12">
+        <div className="flex flex-col mb-6">
+          <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+            Distribución por sección
+          </h2>
+          <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+            Volumen de informaciones publicadas clasificadas por categoría temática.
+          </p>
+        </div>
+        <div className="border-t border-rule dark:border-rule-dark">
+          {tagEntries.map(([tag, { label }]) => {
             const count = porTag[tag] ?? 0
-            const pct = total > 0 ? Math.round((count / total) * 100) : 0
+            const pct = Math.round((count / maxTag) * 100)
+            const tagColor = TAG_COLORS[tag] ?? '#94A3B8'
             return (
-              <div key={tag} className="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-rule dark:border-rule-dark">
-                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide w-fit ${meta.pillBg} ${meta.pillFg}`}>
-                  {meta.label}
-                </span>
-                <div className="hidden sm:block h-1.5 bg-rule/60 dark:bg-rule-dark rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${meta.bar}`} style={{ width: `${pct}%` }} />
+              <div
+                key={tag}
+                className="grid grid-cols-[1fr,auto] sm:grid-cols-[14rem,1fr,auto] items-center gap-4 py-4 border-b border-rule dark:border-rule-dark px-2 hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] transition-colors rounded-sm"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: tagColor }}
+                  />
+                  <span className="text-small font-serif font-semibold text-ink dark:text-ink-dark truncate">
+                    {label}
+                  </span>
+                </div>
+                <div className="hidden sm:block h-1 bg-rule/50 dark:bg-rule-dark/50 rounded-sm overflow-hidden">
+                  <div
+                    className="h-full rounded-sm"
+                    style={{ width: `${pct}%`, backgroundColor: tagColor }}
+                  />
                 </div>
                 <span className="font-serif text-headline text-ink dark:text-ink-dark tnum text-right tabular-nums">
-                  {count} <span className="text-small text-ink-muted dark:text-ink-muted-dark">· {pct}%</span>
+                  {count}
                 </span>
               </div>
             )

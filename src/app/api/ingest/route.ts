@@ -1,5 +1,5 @@
 // src/app/api/ingest/route.ts
-// Cron job: jala RSS, pre-filtra, manda a Claude, guarda en Supabase
+// Cron job: jala RSS, pre-filtra, manda a Groq (fact-check), guarda en Supabase
 // Llamado por Vercel Cron cada 5 minutos (ver vercel.json)
 
 import { createClient } from '@supabase/supabase-js'
@@ -87,7 +87,10 @@ export async function GET(req: Request) {
         const pubDateRaw = new Date(item.pubDate ?? '')
         const pubDate = isNaN(pubDateRaw.getTime()) ? new Date() : pubDateRaw
 
-        if (!url || !titulo) continue
+        // Solo URLs http(s): item.link viene de RSS externo y se renderiza como
+        // href en el cliente — sin este check un feed comprometido podría colar
+        // un esquema javascript:/data: (mismo criterio que extraerImagenRSS).
+        if (!url || !url.startsWith('http') || !titulo) continue
 
         // 1. Pre-filtro por keywords (gratis, rápido)
         if (!preFiltroPasa(titulo, desc)) continue
@@ -110,7 +113,7 @@ export async function GET(req: Request) {
 
         procesadas++
 
-        // 3. Fact-check con Claude
+        // 3. Fact-check con Groq (llama-3.3-70b)
         const resultado = await verificarNoticia(titulo, desc, fuente.nombre)
         // Si el modelo no pudo inferir una zona, probamos con el mapeo determinístico
         // de ciudades conocidas antes de guardar null.
@@ -144,7 +147,7 @@ export async function GET(req: Request) {
         if (resultado.status === 'aprobado') aprobadas++
         else rechazadas++
 
-        // Rate limit: no spamear la API de Claude
+        // Rate limit: no spamear la API de Groq
         await new Promise(r => setTimeout(r, 300))
       }
     } catch (err) {

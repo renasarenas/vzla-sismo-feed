@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { isSupabaseConfigured } from '@/lib/env'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,10 @@ function degradedResponse() {
   )
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!checkRateLimit(getClientIp(req), 60, 60_000)) {
+    return new Response('Too many requests', { status: 429 })
+  }
   if (!isSupabaseConfigured()) return degradedResponse()
 
   const supabase = createClient(

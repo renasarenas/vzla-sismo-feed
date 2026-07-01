@@ -62,9 +62,52 @@ const withPWA = require('next-pwa')({
   ],
 })
 
+// CSP: connect-src cubre Supabase (REST + Realtime wss) y Groq (llamado solo
+// desde el servidor, pero se deja explícito por si se agrega fetch client-side).
+// img-src usa https: amplio porque imagen_url viene de RSS externos arbitrarios.
+// script-src necesita 'unsafe-inline': el App Router de Next.js hidrata usando
+// <script> inline sin nonce (self.__next_f.push(...) para el payload de RSC/
+// streaming) — sin esto el navegador bloquea esos scripts, React nunca
+// hidrata y la página queda congelada en el fallback de loading.tsx para
+// siempre. Endurecer esto requeriría CSP con nonce vía middleware; se deja
+// unsafe-inline por ahora y se compensa con el resto de las directivas.
+// style-src necesita 'unsafe-inline': framer-motion aplica animaciones via
+// atributo style="" inline en cada render.
+const isDev = process.env.NODE_ENV === 'development'
+
+const CSP = [
+  "default-src 'self'",
+  // 'unsafe-eval' is required in development: Next.js webpack runtime uses eval() for
+  // source maps and Fast Refresh. Without it, React cannot execute state updates in dev mode.
+  // In production, Next.js uses static chunks — no eval() needed.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com https://earthquake.usgs.gov https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.arcgis.com https://*.arcgisonline.com",
+  // Allow the ArcGIS WebScene iframe (arcgis.com) to be embedded
+  "frame-src https://www.arcgis.com https://*.arcgis.com",
+  "child-src https://www.arcgis.com https://*.arcgis.com",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
+const SECURITY_HEADERS = [
+  { key: 'Content-Security-Policy', value: CSP },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'geolocation=(), camera=(), microphone=()' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+]
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [{ source: '/:path*', headers: SECURITY_HEADERS }]
+  },
 }
 
 module.exports = withPWA(nextConfig)

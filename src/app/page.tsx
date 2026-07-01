@@ -7,7 +7,7 @@ export default async function Page() {
   let initialData: any[] = []
   try {
     const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${base}/api/feed?limit=50`)
+    const res = await fetch(`${base}/api/feed`)
     if (res.ok) {
       const data = await res.json()
       initialData = data.noticias ?? []
@@ -15,9 +15,5 @@ export default async function Page() {
   } catch {
     // fail silently — el cliente carga el feed por su cuenta
   }
-  return (
-    <div className="max-w-8xl mx-auto">
-      <FeedNoticias initialData={initialData} />
-    </div>
-  )
+  return <FeedNoticias initialData={initialData} />
 }

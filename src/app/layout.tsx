@@ -2,6 +2,12 @@ import type { Metadata } from 'next'
 import { Newsreader, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+// Leaflet's stylesheet, self-hosted from node_modules (the /mapa view needs it).
+// Imported here in the root layout — not inside the dynamically-loaded map
+// component, where Next didn't apply it — so it's bundled and served from
+// 'self', keeping the app's CSP (style-src 'self') intact instead of loading it
+// from the unpkg CDN.
+import 'leaflet/dist/leaflet.css'
 import { Navbar } from '@/components/Navbar'
 import { NumerosEmergencia } from '@/components/NumerosEmergencia'
 import { OfflineBanner } from '@/components/OfflineBanner'

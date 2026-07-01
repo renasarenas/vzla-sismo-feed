@@ -80,6 +80,11 @@ const ORGANIZACIONES: Organizacion[] = [
     descripcion: 'Comunidad de egresados de la USB canalizando apoyo de forma ágil y directa hacia familias afectadas.',
     url: 'https://alumnusb.org/ayuda-tras-terremoto/',
   },
+  {
+    nombre: 'Dona con Yummy',
+    descripcion: 'Campaña de la súper-app venezolana Yummy para canalizar donaciones hacia la ayuda a los afectados por el sismo, con recaudación digital directa.',
+    url: 'https://dona.yummyrides.com/',
+  },
 ]
 
 // Iconos simples y geométricos (24px, stroke=currentColor, strokeWidth 1.8) — cada uno
@@ -181,64 +186,71 @@ function ArrowIcon() {
   )
 }
 
-function OrgCard({ org }: { org: Organizacion }) {
-  const base = `
-    group relative block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
-    border-l-[3px] border-l-crisis-red p-5 h-full transition-colors
-  `
+function OrgCard({ org, index }: { org: Organizacion; index: number }) {
   const motionProps = {
-    initial: { opacity: 0 },
-    whileInView: { opacity: 1 },
+    initial: { opacity: 0, y: 14 },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: '-40px' },
-    transition: { duration: 0.25, ease: 'easeOut' as const },
+    transition: { duration: 0.35, delay: Math.min(index, 8) * 0.05, ease: 'easeOut' as const },
   }
 
   if (!org.url) {
     return (
-      <motion.div {...motionProps} className={`${base} opacity-80`}>
-        <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-base mb-1.5 pr-5">{org.nombre}</h3>
-        <p className="text-small text-ink-muted dark:text-ink-muted-dark">{org.descripcion}</p>
-        <span className="absolute top-5 right-4 font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">
-          Sin link
+      <motion.div
+        {...motionProps}
+        className="group relative block bg-panel/60 dark:bg-panel-dark/60 border border-rule dark:border-rule-dark p-5 h-full rounded-sm"
+      >
+        <span className="absolute top-5 right-4 font-mono text-[9px] uppercase tracking-widest text-ink-muted/70 dark:text-ink-muted-dark/70 bg-paper dark:bg-paper-dark px-1.5 py-0.5 rounded-sm">
+          Socio local
         </span>
+        <h3 className="font-serif font-semibold text-ink/70 dark:text-ink-dark/70 text-base mb-1.5 pr-16">
+          {org.nombre}
+        </h3>
+        <p className="text-small text-ink-muted/80 dark:text-ink-muted-dark/80">
+          {org.descripcion}
+        </p>
       </motion.div>
     )
   }
+
   return (
     <motion.a
       {...motionProps}
       href={org.url}
       target="_blank"
       rel="noopener noreferrer"
+      whileHover={{ y: -3, transition: { duration: 0.15 } }}
       whileTap={{ scale: 0.98 }}
-      className={`${base} hover:bg-black/[0.03] active:bg-black/[0.05] dark:hover:bg-[#1A1A1A] dark:active:bg-[#1A1A1A]`}
+      className="group relative block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-5 h-full rounded-sm hover:border-crisis-red/30 dark:hover:border-crisis-red/40 hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] hover:shadow-soft transition-all duration-200"
     >
-      <span className="absolute top-5 right-4 text-ink-muted dark:text-ink-muted-dark opacity-0 group-hover:opacity-100 group-active:opacity-100 group-hover:text-crisis-red group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+      <span className="absolute top-5 right-4 text-ink-muted dark:text-ink-muted-dark opacity-30 group-hover:opacity-100 group-hover:text-crisis-red group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
         <ArrowIcon />
       </span>
-      <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-base mb-1.5 pr-5 group-hover:text-crisis-red transition-colors">
+      <h3 className="font-serif font-semibold text-ink dark:text-ink-dark text-base mb-1.5 pr-8 group-hover:text-crisis-red transition-colors">
         {org.nombre}
       </h3>
-      <p className="text-small text-ink-muted dark:text-ink-muted-dark">{org.descripcion}</p>
+      <p className="text-small text-ink-muted dark:text-ink-muted-dark">
+        {org.descripcion}
+      </p>
     </motion.a>
   )
 }
 
-function InsumoCard({ item }: { item: string }) {
+function InsumoCard({ item, index }: { item: string; index: number }) {
   const Icon = ICONO_POR_INSUMO[item] ?? IconCarton
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      whileTap={{ scale: 0.98 }}
-      className="group flex flex-col items-start gap-3 bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
-                 border-l-[3px] border-l-crisis-red px-4 py-5 hover:bg-crisis-red/[0.08] hover:border-l-crisis-red
-                 transition-colors"
+      transition={{ duration: 0.3, delay: Math.min(index, 10) * 0.04, ease: 'easeOut' }}
+      whileHover={{ y: -3, transition: { duration: 0.15 } }}
+      whileTap={{ scale: 0.97 }}
+      className="group flex flex-col items-start gap-4 bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark
+                 p-5 rounded-sm hover:border-crisis-red/30 dark:hover:border-crisis-red/40 hover:shadow-soft transition-all duration-200"
     >
-      <span className="flex items-center justify-center w-11 h-11 rounded-full bg-crisis-red/10 text-crisis-red shrink-0 group-hover:bg-crisis-red group-hover:text-white transition-colors">
-        <span className="w-6 h-6"><Icon /></span>
+      <span className="flex items-center justify-center w-10 h-10 rounded-md bg-paper dark:bg-paper-dark border border-rule dark:border-rule-dark text-ink-muted dark:text-ink-muted-dark shrink-0 group-hover:bg-crisis-red/10 group-hover:text-crisis-red group-hover:border-crisis-red/20 transition-all duration-200">
+        <span className="w-5 h-5"><Icon /></span>
       </span>
       <span className="font-serif font-semibold text-ink dark:text-ink-dark leading-snug">{item}</span>
     </motion.div>
@@ -249,35 +261,35 @@ export default function DonarPage() {
   const [imgOk, setImgOk] = useState(true)
 
   return (
-    <main className="pb-10 lg:pb-14">
+    <main className="pb-12 lg:pb-16">
       {/* Hero: foto real de fondo con degradado hacia el fondo de la página. Si la
           imagen no carga (sin conexión, dominio caído), se oculta sola y queda un
           fondo sólido — no un ícono de imagen rota. */}
-      <div className="relative h-64 sm:h-80 lg:h-96 overflow-hidden bg-panel dark:bg-panel-dark">
+      <div className="relative h-64 sm:h-80 lg:h-96 overflow-hidden bg-panel dark:bg-panel-dark border-b border-rule dark:border-rule-dark mb-10">
         {imgOk && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src="https://commons.wikimedia.org/wiki/Special:FilePath/GuLong_canned_food_on_the_shelf.jpg"
+            src="/images/donar-hero.jpg"
             alt=""
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-[1.02] dark:brightness-50 opacity-15 dark:opacity-25"
             onError={() => setImgOk(false)}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-paper/85 to-paper dark:from-black/40 dark:via-paper-dark/85 dark:to-paper-dark" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-paper/85 to-paper dark:via-paper-dark/85 dark:to-paper-dark" />
         <div className="relative z-10 h-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col justify-end pb-8">
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-eyebrow uppercase text-crisis-red mb-3"
+            className="font-mono text-[10px] uppercase tracking-widest text-crisis-red mb-3 font-semibold"
           >
-            Cómo ayudar
-          </motion.p>
+            Iniciativa Humanitaria
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.05 }}
-            className="font-serif text-display text-ink dark:text-ink-dark"
+            className="font-serif text-hero lg:text-masthead text-ink dark:text-ink-dark leading-none"
           >
             Guía para donar
           </motion.h1>
@@ -285,64 +297,82 @@ export default function DonarPage() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="text-lead text-ink-muted dark:text-ink-muted-dark mt-3 max-w-prose"
+            className="text-lead text-ink/75 dark:text-ink-dark/75 mt-3 max-w-prose"
           >
-            Insumos más necesitados y organizaciones verificadas que están canalizando ayuda a Venezuela. Tocá cualquier tarjeta para abrir la página oficial.
+            Directorio verificado de organizaciones y requerimientos urgentes de ayuda humanitaria para los afectados por el sismo en Venezuela. Tocá cualquier recurso para acceder a los canales oficiales.
           </motion.p>
         </div>
       </div>
 
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10">
         {/* Insumos */}
-        <section className="mb-14">
-          <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Insumos más necesitados</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {INSUMOS.map((item) => (
-              <InsumoCard key={item} item={item} />
+        <section className="mb-16">
+          <div className="flex flex-col mb-6">
+            <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+              Insumos prioritarios
+            </h2>
+            <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+              Alimentos no perecederos y suministros médicos esenciales solicitados en los centros de acopio.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {INSUMOS.map((item, i) => (
+              <InsumoCard key={item} item={item} index={i} />
             ))}
           </div>
         </section>
 
         {/* Donaciones monetarias */}
-        <section className="mb-14">
-          <h2 className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark mb-4">Dónde donar dinero</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {ORGANIZACIONES.map((org) => (
-              <OrgCard key={org.nombre} org={org} />
+        <section className="mb-16">
+          <div className="flex flex-col mb-6">
+            <h2 className="font-serif text-display text-ink dark:text-ink-dark">
+              Dónde donar dinero
+            </h2>
+            <p className="text-small text-ink/75 dark:text-ink-dark/75 mt-1">
+              Entidades internacionales y locales con despliegue activo sobre el terreno.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {ORGANIZACIONES.map((org, i) => (
+              <OrgCard key={org.nombre} org={org} index={i} />
             ))}
           </div>
         </section>
 
-        {/* Fuentes */}
-        <section className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-5">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mb-2">Verificar más organizaciones</p>
-          <p className="text-small text-ink-muted dark:text-ink-muted-dark max-w-prose mb-3">
-            Antes de donar a una campaña que no reconozcas, revisá su trayectoria en{' '}
-            <a href="https://donarseguro.com" target="_blank" rel="noopener noreferrer" className="text-crisis-red hover:underline">
+        {/* Fuentes y Seguridad */}
+        <section className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-6 rounded-sm mb-12">
+          <h3 className="font-serif font-semibold text-lg text-ink dark:text-ink-dark mb-2">
+            Seguridad en la donación
+          </h3>
+          <p className="text-small text-ink/75 dark:text-ink-dark/75 max-w-prose mb-4">
+            Antes de transferir fondos a cualquier campaña personal o de terceros no listados, verificá su legitimidad en{' '}
+            <a href="https://donarseguro.com" target="_blank" rel="noopener noreferrer" className="text-crisis-red font-medium hover:underline">
               donarseguro.com
             </a>
-            , un directorio de campañas legítimas para el terremoto de Venezuela.
+            , una plataforma ciudadana dedicada a validar iniciativas de ayuda humanitaria para el terremoto de Venezuela.
           </p>
-          <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark">
-            Fuentes:{' '}
-            <a
-              href="https://lga.lagranaldea.com/2026/06/28/guia-completa-para-ayudar-a-venezuela-tras-el-terremoto-donde-buscar-personas-como-donar-y-que-hacer/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-ink dark:hover:text-ink-dark"
-            >
-              La Gran Aldea
-            </a>
-            {' · '}
-            <a
-              href="https://alumnusb.org/ayuda-tras-terremoto/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-ink dark:hover:text-ink-dark"
-            >
-              AlumnUSB
-            </a>
-          </p>
+          <div className="border-t border-rule dark:border-rule-dark pt-4 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark">
+            <span>
+              Fuentes oficiales y reportes:{' '}
+              <a
+                href="https://lga.lagranaldea.com/2026/06/28/guia-completa-para-ayudar-a-venezuela-tras-el-terremoto-donde-buscar-personas-como-donar-y-que-hacer/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-ink dark:hover:text-ink-dark transition-colors"
+              >
+                La Gran Aldea
+              </a>
+              {' · '}
+              <a
+                href="https://alumnusb.org/ayuda-tras-terremoto/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-ink dark:hover:text-ink-dark transition-colors"
+              >
+                AlumnUSB
+              </a>
+            </span>
+          </div>
         </section>
       </div>
     </main>

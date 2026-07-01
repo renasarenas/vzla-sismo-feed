@@ -44,3 +44,8 @@ package-lock.json
 # Playwright MCP artifacts and screenshots generated during local verification
 .playwright-mcp/
 screenshots/
+
+# Local agent tooling (not part of the app)
+.claude/
+.atl/
+.mcp.json

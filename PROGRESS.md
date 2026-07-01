@@ -1,20 +1,45 @@
 # Progress Log
 
 ## Current Verified State
-- Repository root: `/home/phylip/Downloads/vzla-sismo-feed`
+- Repository root: `g:/Projects/vzla-sismo-feed`
 - Standard startup path: `./init.sh` (pwd, Node check, `npm ci`, `npx tsc --noEmit`, `npm run build`, PWA artifact check)
-- Standard verification path: `./init.sh` from a clean state. Last run: green.
-- Current branch: `feat/agent-skills-frontend` (rebased onto `upstream/master`, `./init.sh` green, ready for force-push and PR).
+- Standard verification path: `npx tsc --noEmit` and `npm run build`. Last run: green.
+- Current branch: `master`
 - Node: v24.14.1 (local). Engine pin: `>=20.0.0` covers the team baseline.
 - npm: 11.14.1 (local). Team baseline: 11.13.0. Engine pin: `>=11.0.0`.
 - Agent skills installed at project scope (`./.agents/skills/`, gitignored; `skills-lock.json` tracked). See Session 002.
 - Frontend visual refresh applied on `feat/agent-skills-frontend`. See Session 003.
-- Current highest-priority unfinished feature: merge the five approved improvement branches (`feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`) into `master` after review.
-- Current highest-priority unfinished feature: user-approved map and feature improvements (dark tiles, territory+heatmap, zone filter, offline mode, tsunami alerts).
+- Map UI/UX improvements (interactive legend magnitude filter, state filter, details card, 3D skeleton loading/guide) completed on `master`. See Session 010.
+- Dropdown select contrast accessibility fix in dark mode completed on `master`. See Session 011.
 - Current blocker: none for the verification harness. Local Supabase not provisioned (`.env.local` uses placeholders so dev server boots without a real DB; API routes now return fast degraded-mode empty responses in local dev).
-- Active feature branches (from `master`): `feat/dark-map-tiles`, `feat/tsunami-alert`, `feat/map-territory-heatmap`, `feat/filter-by-zone`, `feat/offline-mode`.
 
 ## Session Log
+
+### Session 011 — 2026-07-01
+- Date: 2026-07-01
+- Goal: resolver el problema de contraste en los menús desplegables (`<select>`) en modo oscuro donde las opciones nativas se renderizaban con texto claro sobre fondo claro.
+- Completed:
+  - Agregado `color-scheme: light` a `:root` y `color-scheme: dark` a `.dark` en [globals.css](file:///g:/Projects/vzla-sismo-feed/src/app/globals.css) para forzar al navegador a renderizar los desplegables nativos con el tema de color correcto del sistema.
+  - Añadido estilos explícitos para elementos `<option>` tanto en modo claro como en modo oscuro en [globals.css](file:///g:/Projects/vzla-sismo-feed/src/app/globals.css).
+  - Aplicadas clases de Tailwind CSS (`bg-panel dark:bg-panel-dark text-ink dark:text-ink-dark`) a los elementos `<option>` en [FeedNoticias.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/FeedNoticias.tsx) y [MapaSismos.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaSismos.tsx).
+- Verification:
+  - `npx tsc --noEmit` y `npm run build` completados con éxito.
+- Commits:
+  - `1244e25` fix(frontend): resolve contrast accessibility issue in select dropdowns
+
+### Session 010 — 2026-07-01
+- Date: 2026-07-01
+- Goal: improve the UI/UX of the maps page (2D and 3D) using ui-ux-pro-max and impeccable guidelines.
+- Completed:
+  - Custom styled Leaflet popups, containers, and zoom controls in [globals.css](file:///g:/Projects/vzla-sismo-feed/src/app/globals.css) to match the brand typography and colors (clear light/dark themes).
+  - Modified [LeafletMap.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/LeafletMap.tsx) to support centering the camera (flyTo) on selected sismos and emit click events on markers.
+  - Redesigned [MapaSismos.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaSismos.tsx) to render a dashboard layout with a floating sidebar (interactive magnitude range filters, geographic state filters, and sismo details panel).
+  - Enhanced [MapaEdificios3D.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaEdificios3D.tsx) with a loading skeleton/shimmer and a floating panel containing specifications, navigation controls, and censo context.
+  - Modified [MapaSwitcher.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaSwitcher.tsx) to query the `zona` field from Supabase and polished the tab buttons for accessibility and touch targets.
+- Verification:
+  - TypeScript type check (`npx tsc --noEmit`) and production Next.js build (`npm run build`) completed successfully with zero warnings/errors.
+- Commits:
+  - `4253012` feat(mapa): improve UI/UX of sismos and 3D buildings maps
 
 ### Session 009 — 2026-06-30
 - Date: 2026-06-30
@@ -323,3 +348,44 @@
 - Next best step:
   - Review the redesign and merge `feat/agent-skills-frontend` into `master`.
   - Optional follow-ups: resolve the font-override warning, migrate the emergency modal cards to the new tokens, and integrate dark-mode map tiles.
+
+### Session 010 — 2026-07-01
+- Date: 2026-07-01
+- Goal: mejorar el UI/UX de las páginas de donaciones (/donar), estadísticas (/stats) e inicio (/) usando las directrices de /ui-ux-pro-max y /impeccable, respetando el estilo editorial.
+- Completed:
+  - Inicialización del contexto estratégico visual mediante los artefactos PRODUCT.md y DESIGN.md bajo el registro "brand".
+  - **Página de inicio (/)**:
+    - Remoción de side-stripe borders (bordes izquierdos de 3px) en tarjetas de noticias, esqueletos de carga y `EmptyState` para erradicar malas prácticas ("AI Tells").
+    - Corrección del bug de legibilidad en hover (que forzaba fondo `#1A1A1A` sobre texto oscuro) en `GaleriaHero.tsx` y `FeedNoticias.tsx`, adoptando transiciones de opacidad seguras.
+    - Unificación y ordenamiento geométrico de la redondez de tarjetas a `rounded-sm`.
+    - Eliminación de colores y placeholders hardcodeados en el buscador y filtros por clases de opacidad con tokens de contraste WCAG AA.
+    - Rediseño de la alerta toast de réplicas sísmicas con un estilo premium en tonos ámbar oscuros/claros adaptables y de alto contraste.
+  - **Página de donaciones (/donar)**:
+    - Remoción de side-stripes en InsumoCard y OrgCard, corrección de hover bugs de legibilidad y distinción de socios locales sin enlace.
+    - Restablecimiento del Hero a su diseño de fondo completo (full-bleed) original con la URL original de Wikimedia y opacidad controlada.
+  - **Página de estadísticas (/stats)**:
+    - Integración y maquetación de la sección oficial de víctimas y daños (fallecidos, heridos, desaparecidos) expuesta por la API de backend, anteriormente oculta.
+    - Rediseño de la cabecera editorial y del panel del boletín (tarjeta asimétrica de reportes verificados).
+    - Unificación de los colores de categorías con `FeedNoticias.tsx` y refinamiento de la tabla de distribución (barras más delgadas de 4px de altura, rectangulares y con hover interactivo).
+  - Corrección de contrastes WCAG AA (>=4.5:1) en textos secundarios sobre fondo paper en todas las páginas.
+  - **Botón y modal de emergencias**: Rediseño de UI/UX del botón flotante (FAB) y del modal del directorio telefónico usando tokens semánticos oficiales y transiciones fluidas de `framer-motion` (deslizamiento bottom-sheet en móviles, fade-scale en desktop, scroll lock y soporte de tecla Escape para cerrar).
+  - **Corrección de Regresión en Controles e Hydration**: Eliminado de forma definitiva el React Portal de la barra de acciones de la Navbar (que dependía de buscar el nodo en el DOM con `getElementById` y fallaba al hidratarse asincrónicamente). Ahora la `Navbar.tsx` renderiza las acciones de alertas y exportar directamente cuando `pathname === '/'`. La comunicación y el intercambio de estados se manejan de manera reactiva y desacoplada mediante Custom Events nativos del navegador (`action:exportar` y `action:exportado-exito`).
+  - **Simplificación del FAB de Emergencias**: Reemplazado por completo `framer-motion` en todo el componente [NumerosEmergencia.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/NumerosEmergencia.tsx) por elementos HTML estándar y transiciones/animaciones CSS de Tailwind inyectadas, previniendo fallas de hidratación y garantizando la visibilidad inmediata del botón flotante en el navegador.
+  - **Resolución de Conflicto en Puerto 3000**: Detectado y finalizado un proceso huérfano de Node (PID 29416) que mantenía ocupado el puerto 3000 sirviendo una caché de código desactualizada. Se relanzó el servidor local de desarrollo (`npm run dev`) de forma limpia en el puerto 3000.
+- Verification:
+  - Compilación limpia de producción y análisis de tipos pasados con éxito (`npm run build`).
+  - Servidor de desarrollo relanzado con éxito tras purgado de caché y respondiendo con código 200 en `/api/feed`.
+  - Integridad verificada de los botones nativos y la comunicación de eventos.
+- Commits:
+  - `ce9da20` fix(ui): remove framer-motion dependency from emergency FAB to prevent client opacity issues
+  - `8000ad5` fix(ui): refactor actions and FAB to direct rendering to resolve hydration issues
+  - `936994a` fix(ui): resolve hydration mismatch and timing issues for emergency fab and action portal
+  - `f0e824d` feat(ui): redesign emergency button and modal directory UI/UX
+  - `6303c33` feat(donar): improve ui-ux and establish design system
+  - `daf1f95` feat(stats): improve ui-ux and integrate casualties data
+  - `6bc3347` fix(donar): restore full-bleed background image in hero
+  - `7ee64b8` feat(home): improve homepage ui-ux and align with design tokens
+  - `2b2d093` fix(home): move card title below image to resolve muddy hover contrast
+  - `dd0b205` fix(theme): optimize tag badge contrast with dot indicators and theme adaptive colors
+  - `0f6baa3` feat(home): unify card layouts using editorial seismograph placeholder
+  - `2cb2ca7` fix(home): animate collapse and expand on ResumenEvento with rotate transition

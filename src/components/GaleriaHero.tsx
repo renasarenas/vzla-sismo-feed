@@ -12,26 +12,11 @@ export interface NoticiaGaleria {
   fuente: string
   tag: string | null
   publicado_at: string
-  imagen_url: string
+  imagen_url: string  // guaranteed non-null by .not('imagen_url','is',null) + empty-string filter in ingest
 }
 
-// Same hue-per-category convention as FeedNoticias' TAG_META, kept local since
-// this component only needs the hex (for the translucent badge over photos),
-// not the full label/border/pill class set.
-const TAG_HEX: Record<string, string> = {
-  sismo: '#CF1020',
-  rescate: '#6B3A52',
-  desaparecidos: '#B5502E',
-  puntos_acopio: '#5C7A4A',
-  ayuda_humanitaria: '#3D5A73',
-  replicas: '#A67C2E',
-  donaciones: '#3E7C6E',
-  internacional: '#8A8378',
-}
-
-// Purely presentational now — `noticias` is a slice of the same deduped list
-// FeedNoticias builds the hero package and curated sections from, so nothing
-// here can repeat a story already shown elsewhere on the page.
+// Presentational only — `noticias` is a slice of the shared FeedNoticias pool
+// (galería → portada → curadas → feed), so nothing repeats across the sections.
 export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaGaleria[]; cargando: boolean }) {
   if (!cargando && noticias.length === 0) return null
 
@@ -43,14 +28,19 @@ export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaG
       </p>
 
       {cargando ? (
+        // Mirrors the real card below (aspect-video image + title + meta) so the
+        // layout doesn't shift when content arrives.
         <div className="flex gap-4 pb-4">
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              className="w-[300px] flex-shrink-0 rounded-lg overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark"
+              className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark"
             >
               <div className="aspect-video w-full skeleton" />
               <div className="p-4">
+                {/* Same box model as the real card: fixed width + aspect-video image +
+                    a 2-line (min-h-[2.5rem]) title region + one meta line. Identical
+                    height, so the swap to content causes zero layout shift. */}
                 <div className="min-h-[2.5rem] mb-1.5 space-y-1.5">
                   <div className="h-3 w-full rounded skeleton" />
                   <div className="h-3 w-2/3 rounded skeleton" />
@@ -62,19 +52,22 @@ export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaG
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {noticias.map((n) => (
+          {noticias.map((n, i) => (
             <motion.a
               key={n.id}
               href={n.url}
               target="_blank"
               rel="noopener noreferrer"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              className="w-[300px] flex-shrink-0 rounded-lg overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark hover:bg-black/[0.03] dark:hover:bg-[#1A1A1A] transition-colors"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0, transition: { delay: Math.min(i, 6) * 0.06 } }}
+              whileHover={{ y: -3 }}
+              className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] hover:border-crisis-red/30 transition-all duration-200"
             >
               <GaleriaImagen src={n.imagen_url} alt={n.titulo} tag={n.tag} />
               <div className="p-4">
+                {/* min-h reserves 2 title lines so a 1-line title doesn't shorten the
+                    card; truncate keeps the meta to a single line. Fixed width above +
+                    these = constant card height, identical to the skeleton. */}
                 <h3 className="font-serif font-semibold text-sm text-ink dark:text-ink-dark line-clamp-2 min-h-[2.5rem] mb-1.5">{n.titulo}</h3>
                 <p className="font-mono text-[11px] text-ink-muted dark:text-ink-muted-dark tracking-wide truncate">{n.fuente} · {tiempoRelativo(n.publicado_at)}</p>
               </div>
@@ -102,8 +95,6 @@ function GaleriaImagen({ src, alt, tag }: { src: string; alt: string; tag: strin
 
   if (failed) return null
 
-  const hex = (tag && TAG_HEX[tag]) || '#444444'
-
   return (
     <div className="relative aspect-video w-full bg-panel dark:bg-panel-dark">
       {!loaded && <div className="absolute inset-0 skeleton" />}
@@ -113,15 +104,23 @@ function GaleriaImagen({ src, alt, tag }: { src: string; alt: string; tag: strin
         alt={alt}
         fill
         unoptimized
+        referrerPolicy="no-referrer"
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
         className={`object-cover transition-opacity duration-500 ease-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
       />
       {tag && (
-        <span
-          className="absolute top-2 left-2 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md border border-white/25 shadow-sm"
-          style={{ backgroundColor: `${hex}80` }}
-        >
+        <span className="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+            tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
+            tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
+            tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
+            tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
+            tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
+            tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
+            tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
+            'bg-ink-muted'
+          }`} />
           {tag.replace(/_/g, ' ')}
         </span>
       )}
