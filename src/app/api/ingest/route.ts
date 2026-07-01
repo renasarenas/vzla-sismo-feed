@@ -4,7 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import Parser from 'rss-parser'
-import { FUENTES, preFiltroPasa } from '@/lib/sources'
+import { FUENTES, preFiltroPasa, detectarZonaPorCiudad } from '@/lib/sources'
 import { verificarNoticia } from '@/lib/factchecker'
 
 export const dynamic = 'force-dynamic'
@@ -112,6 +112,9 @@ export async function GET(req: Request) {
 
         // 3. Fact-check con Claude
         const resultado = await verificarNoticia(titulo, desc, fuente.nombre)
+        // Si el modelo no pudo inferir una zona, probamos con el mapeo determinístico
+        // de ciudades conocidas antes de guardar null.
+        const zona = resultado.zona ?? detectarZonaPorCiudad(`${titulo} ${desc}`)
         const imagen_url = extraerImagenRSS(item)
 
         // 4. Guardar en Supabase (todas, incluyendo rechazadas para auditoría)
@@ -123,7 +126,7 @@ export async function GET(req: Request) {
           fuente_tipo: fuente.tipo,
           idioma: fuente.idioma,
           tag: resultado.tag ?? 'sismo',
-          zona: resultado.zona ?? null,
+          zona,
           factcheck_status: resultado.status,
           factcheck_razon: resultado.razon,
           factcheck_confianza: resultado.confianza,
@@ -208,6 +211,7 @@ async function ingestUSGS(supabase: any, nombreFuente: string, url: string): Pro
         fuente_tipo: 'oficial',
         idioma: 'es',
         tag: 'sismo',
+        zona: detectarZonaPorCiudad(lugar),
         factcheck_status: 'aprobado',
         factcheck_razon: 'Fuente oficial USGS',
         factcheck_confianza: 99,

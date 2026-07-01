@@ -67,7 +67,20 @@ const TAG_META: Record<string, { label: string; border: string; text: string; sh
 
 const LIMIT = 30
 
-const RESUMEN_DATOS = [
+type CifrasEvento = {
+  magnitud_1: string
+  magnitud_2: string
+  segundos_entre_sismos: number
+  epicentro: string
+  muertos: number
+  heridos: number
+  desaparecidos: number
+  fecha_cifras: string
+  fuente: string
+}
+
+// Usado mientras carga la tabla `cifras_evento` de Supabase, o si la carga falla.
+const RESUMEN_DATOS_FALLBACK = [
   { num: 'M7.2 + M7.5',        label: 'Doblete sísmico',   red: false },
   { num: '40 seg',              label: 'Entre sismos',      red: false },
   { num: 'Yaracuy / Carabobo', label: 'Epicentro',         red: false },
@@ -249,6 +262,40 @@ function EmptyState({ error, degraded }: { error?: boolean; degraded?: boolean }
 
 function ResumenEvento() {
   const [open, setOpen] = useState(true)
+  const [cifras, setCifras] = useState<CifrasEvento | null>(null)
+
+  // Tabla `cifras_evento`: fila única (id=1) editable a mano desde el Table
+  // Editor de Supabase. Mientras carga o si falla, se usa el fallback fijo.
+  useEffect(() => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    supabase
+      .from('cifras_evento')
+      .select('magnitud_1, magnitud_2, segundos_entre_sismos, epicentro, muertos, heridos, desaparecidos, fecha_cifras, fuente')
+      .eq('id', 1)
+      .maybeSingle()
+      .then(
+        ({ data }) => { if (data) setCifras(data as CifrasEvento) },
+        () => { /* usa el fallback */ }
+      )
+  }, [])
+
+  const datos = cifras ? [
+    { num: `${cifras.magnitud_1} + ${cifras.magnitud_2}`, label: 'Doblete sísmico', red: false },
+    { num: `${cifras.segundos_entre_sismos} seg`, label: 'Entre sismos', red: false },
+    { num: cifras.epicentro, label: 'Epicentro', red: false },
+    { num: `~${cifras.muertos.toLocaleString('es-VE')}`, label: 'Muertos (aprox.)', red: true },
+    { num: `~${cifras.heridos.toLocaleString('es-VE')}`, label: 'Heridos', red: true },
+    { num: `+${cifras.desaparecidos.toLocaleString('es-VE')}`, label: 'Desaparecidos', red: true },
+  ] : RESUMEN_DATOS_FALLBACK
+
+  const fechaLabel = cifras
+    ? new Date(`${cifras.fecha_cifras}T00:00:00`).toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '28 jun 2026'
+  const fuenteLabel = cifras?.fuente ?? 'medios verificados'
+
   return (
     <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-4 mb-4">
       <button
@@ -261,14 +308,14 @@ function ResumenEvento() {
       {open && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-center">
           <div className="lg:col-span-8 grid grid-cols-2 gap-x-6 gap-y-4">
-            {RESUMEN_DATOS.map(({ num, label, red }) => (
+            {datos.map(({ num, label, red }) => (
               <div key={label} className="border-l-2 border-rule dark:border-rule-dark pl-4 py-1">
                 <p className={`font-mono text-xl sm:text-2xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
                 <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
               </div>
             ))}
             <p className="col-span-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-2">
-              Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
+              Cifras provisionales · {fechaLabel} · Fuente: {fuenteLabel}
             </p>
           </div>
           <div className="lg:col-span-4 w-full max-w-[375px] mx-auto">
