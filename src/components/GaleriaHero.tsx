@@ -45,7 +45,7 @@ export default function GaleriaHero() {
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              className="w-[300px] flex-shrink-0 rounded-lg overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark"
+              className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark"
             >
               <div className="aspect-video w-full skeleton" />
               <div className="p-4">
@@ -72,7 +72,7 @@ export default function GaleriaHero() {
               initial={{ opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0, transition: { delay: Math.min(i, 6) * 0.06 } }}
               whileHover={{ y: -3 }}
-              className="w-[300px] flex-shrink-0 rounded-lg overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark hover:bg-[#1A1A1A] dark:hover:bg-[#1A1A1A] transition-colors"
+              className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] hover:border-crisis-red/30 transition-all duration-200"
             >
               <GaleriaImagen src={n.imagen_url} alt={n.titulo} tag={n.tag} />
               <div className="p-4">

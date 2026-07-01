@@ -316,7 +316,7 @@ function FeedActionButtons({
 
 function EmptyState({ error, degraded }: { error?: boolean; degraded?: boolean }) {
   return (
-    <div className="py-16 px-6 border border-rule dark:border-rule-dark border-l-[3px] border-l-[#CF1020] bg-panel dark:bg-panel-dark">
+    <div className="py-16 px-6 border border-rule dark:border-rule-dark rounded-sm bg-panel/40 dark:bg-panel-dark/20">
       <p className="font-mono text-[10px] uppercase tracking-widest text-crisis-red mb-3">
         {degraded ? 'Servicio en modo local' : error ? 'Sin conexión' : 'Sin registros'}
       </p>
@@ -363,10 +363,10 @@ function ResumenEvento({ cifras }: { cifras: CifrasStats | null }) {
     : 'Cifras provisionales · 28 jun 2026 · Fuente: medios verificados'
 
   return (
-    <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-4 mb-4">
+    <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-4 rounded-sm mb-4">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-[#999] transition-colors"
+        className="w-full flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark transition-colors"
       >
         <span>Resumen del evento</span>
         <span>{open ? '▲' : '▼'}</span>
@@ -375,7 +375,7 @@ function ResumenEvento({ cifras }: { cifras: CifrasStats | null }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-center">
           <div className="lg:col-span-8 grid grid-cols-2 gap-x-6 gap-y-4">
             {datos.map(({ num, label, red }) => (
-              <div key={label} className="border-l-2 border-rule dark:border-rule-dark pl-4 py-1">
+              <div key={label} className="border-l border-rule dark:border-rule-dark pl-4 py-1">
                 <p className={`font-mono text-xl sm:text-2xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
                 <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
               </div>
@@ -659,7 +659,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                   className={`relative font-mono text-[10px] uppercase tracking-widest shrink-0 pb-2.5 transition-colors ${
                     active
                       ? text
-                      : 'text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
+                      : 'text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark'
                   }`}
                 >
                   {short}
@@ -683,7 +683,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                 className={`font-mono text-[11px] uppercase tracking-widest transition-colors ${
                   idiomaActivo === lang
                     ? 'text-ink dark:text-ink-dark'
-                    : 'text-ink-muted dark:text-ink-muted-dark hover:text-[#999]'
+                    : 'text-ink-muted dark:text-ink-muted-dark hover:text-ink dark:hover:text-ink-dark'
                 }`}
               >
                 {lang}
@@ -715,7 +715,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             value={queryInput}
             onChange={e => setQueryInput(e.target.value)}
             placeholder="Buscar noticias…"
-            className="w-full pl-5 pr-4 py-2.5 font-mono text-[11px] tracking-wide bg-transparent border-b border-rule dark:border-rule-dark text-ink dark:text-ink-dark placeholder-[#333] focus:border-[#555] focus:outline-none transition-colors"
+            className="w-full pl-5 pr-4 py-2.5 font-mono text-[11px] tracking-wide bg-transparent border-b border-rule dark:border-rule-dark text-ink dark:text-ink-dark placeholder-ink-muted/50 dark:placeholder-ink-muted-dark/50 focus:border-ink-muted/70 dark:focus:border-ink-muted-dark/70 focus:outline-none transition-colors"
           />
         </div>
       </div>
@@ -756,7 +756,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           // doesn't reflow when the feed arrives.
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark border-l-[3px] overflow-hidden">
+              <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-sm overflow-hidden">
                 {/* Image block on top mirrors the hero card (~82% carry an image). */}
                 <div className="aspect-[16/10] w-full skeleton" />
                 <div className="px-4 pt-2.5 pb-4">
@@ -787,10 +787,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.03 } }}
                     exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
                     className={`
-                      group block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-none
-                      border-l-[3px] ${meta?.border ?? 'border-l-[#444]'}
-                      overflow-hidden hover:bg-[#1A1A1A] transition-colors
-                      ${isNuevo(n) ? 'ring-1 ring-inset ring-[#CF1020]/30' : ''}
+                      group block bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-sm
+                      overflow-hidden hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] hover:border-crisis-red/30 transition-all duration-200
+                      ${isNuevo(n) ? 'ring-1 ring-inset ring-crisis-red/30' : ''}
                     `}
                   >
                     {hasImage ? (
@@ -824,7 +823,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             </span>
                           )}
                           {/* Titular sobre la zona oscura del scrim */}
-                          <h2 className="absolute inset-x-0 bottom-0 px-4 pb-3 font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-[#CF1020] transition-colors">
+                          <h2 className="absolute inset-x-0 bottom-0 px-4 pb-3 font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors">
                             {n.titulo}
                           </h2>
                         </div>
@@ -855,7 +854,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                             {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
                           </span>
                         </div>
-                        <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-[#CF1020] transition-colors mb-2">
+                        <h2 className="font-serif font-semibold text-[1.05rem] leading-snug text-ink dark:text-ink-dark group-hover:text-crisis-red transition-colors mb-2">
                           {n.titulo}
                         </h2>
                         {n.descripcion && (
@@ -876,7 +875,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             {/* Sentinel de infinite scroll */}
             <div ref={sentinelRef} className="py-8 text-center">
               {cargandoMas && (
-                <div className="inline-block w-4 h-4 border border-[#333] border-t-crisis-red rounded-full animate-spin" />
+                <div className="inline-block w-4 h-4 border border-rule dark:border-rule-dark border-t-crisis-red rounded-full animate-spin" />
               )}
               {!hasMore && noticias.length > 0 && (
                 <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">Fin del feed</p>
@@ -894,22 +893,22 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
           animate={{ opacity: 1, y: 0, x: '-50%' }}
           exit={{ opacity: 0, y: 24, x: '-50%' }}
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          className="fixed bottom-24 left-1/2 z-50 w-[90vw] max-w-md bg-[#EAB308]"
+          className="fixed bottom-24 left-1/2 z-50 w-[90vw] max-w-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 text-amber-950 dark:text-amber-50 rounded-sm shadow-lg"
         >
           <div className="flex items-start justify-between gap-3 p-3">
             <div className="min-w-0">
-              <p className="font-mono text-[11px] uppercase tracking-widest font-bold text-black flex items-center gap-1.5">
+              <p className="font-mono text-[11px] uppercase tracking-widest font-bold text-amber-900 dark:text-amber-400 flex items-center gap-1.5">
                 <AlertTriangleIcon />
                 Réplica detectada
               </p>
-              <p className="text-sm font-serif text-black mt-1 leading-snug">
+              <p className="text-sm font-serif mt-1 leading-snug">
                 {replicaToast}
               </p>
             </div>
             <button
               onClick={() => setReplicaToast(null)}
               aria-label="Cerrar aviso de réplica"
-              className="text-black shrink-0 hover:opacity-70 transition-opacity"
+              className="text-current shrink-0 hover:opacity-70 transition-opacity"
             >
               <CloseIcon />
             </button>
