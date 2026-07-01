@@ -4,7 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import Parser from 'rss-parser'
-import { FUENTES, preFiltroPasa } from '@/lib/sources'
+import { FUENTES, preFiltroPasa, detectarZonaPorCiudad } from '@/lib/sources'
 import { verificarNoticia } from '@/lib/factchecker'
 
 export const dynamic = 'force-dynamic'
@@ -115,6 +115,9 @@ export async function GET(req: Request) {
 
         // 3. Fact-check con Claude
         const resultado = await verificarNoticia(titulo, desc, fuente.nombre)
+        // Si el modelo no pudo inferir una zona, probamos con el mapeo determinístico
+        // de ciudades conocidas antes de guardar null.
+        const zona = resultado.zona ?? detectarZonaPorCiudad(`${titulo} ${desc}`)
         const imagen_url = extraerImagenRSS(item)
 
         // 4. Guardar en Supabase (todas, incluyendo rechazadas para auditoría)
@@ -126,11 +129,15 @@ export async function GET(req: Request) {
           fuente_tipo: fuente.tipo,
           idioma: fuente.idioma,
           tag: resultado.tag ?? 'sismo',
+          zona,
           factcheck_status: resultado.status,
           factcheck_razon: resultado.razon,
           factcheck_confianza: resultado.confianza,
           publicado_at: pubDate.toISOString(),
           imagen_url,
+          cifra_muertos: resultado.cifra_muertos,
+          cifra_heridos: resultado.cifra_heridos,
+          cifra_desaparecidos: resultado.cifra_desaparecidos,
         })
 
         if (insertError) {
@@ -210,12 +217,14 @@ async function ingestUSGS(supabase: any, nombreFuente: string, url: string): Pro
         fuente_tipo: 'oficial',
         idioma: 'es',
         tag: 'sismo',
+        zona: detectarZonaPorCiudad(lugar),
         factcheck_status: 'aprobado',
         factcheck_razon: 'Fuente oficial USGS',
         factcheck_confianza: 99,
         publicado_at: new Date(props.time).toISOString(),
         lat: feature.geometry.coordinates[1],
         lng: feature.geometry.coordinates[0],
+        tsunami: Boolean(props.tsunami),
       })
       if (insertError) {
         console.error('[ingest] Error insertando USGS:', insertError.message)

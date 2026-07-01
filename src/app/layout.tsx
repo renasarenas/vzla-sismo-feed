@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Newsreader, Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { NumerosEmergencia } from '@/components/NumerosEmergencia'
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {children}
         <NumerosEmergencia />
+        <Analytics />
       </body>
     </html>
   )

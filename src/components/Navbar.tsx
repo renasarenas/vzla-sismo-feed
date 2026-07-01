@@ -68,6 +68,7 @@ export function Navbar() {
     { href: '/', label: 'Boletín' },
     { href: '/mapa', label: 'Mapa sísmico' },
     { href: '/stats', label: 'Indicadores' },
+    { href: '/donar', label: 'Donar' },
   ]
 
   return (

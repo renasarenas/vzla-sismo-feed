@@ -11,6 +11,13 @@ const TAGS_VALIDOS = [
   'ayuda_humanitaria', 'replicas', 'donaciones', 'internacional',
 ]
 
+const ZONAS_VALIDAS = [
+  'amazonas', 'anzoategui', 'apure', 'aragua', 'barinas', 'bolivar', 'carabobo',
+  'cojedes', 'delta_amacuro', 'distrito_capital', 'falcon', 'guarico', 'lara',
+  'merida', 'miranda', 'monagas', 'nueva_esparta', 'portuguesa', 'sucre',
+  'tachira', 'trujillo', 'vargas', 'yaracuy', 'zulia', 'la_guaira',
+]
+
 export async function GET(req: NextRequest) {
   if (!checkRateLimit(getClientIp(req), 60, 60_000)) {
     return new Response('Too many requests', { status: 429 })
@@ -23,6 +30,7 @@ export async function GET(req: NextRequest) {
   )
   const { searchParams } = req.nextUrl
   const tag = searchParams.get('tag')
+  const zona = searchParams.get('zona')
   const lang = searchParams.get('lang')
   const q = searchParams.get('q')?.trim()
   const raw = parseInt(searchParams.get('limit') ?? '30')
@@ -50,9 +58,10 @@ export async function GET(req: NextRequest) {
   const base = () => {
     let q2 = supabase
       .from('noticias')
-      .select('id, titulo, descripcion, url, fuente, fuente_tipo, tag, idioma, publicado_at, factcheck_confianza, factcheck_status, imagen_url', { count: 'exact' })
+      .select('id, titulo, descripcion, url, fuente, fuente_tipo, tag, idioma, publicado_at, factcheck_confianza, factcheck_status, imagen_url, tsunami', { count: 'exact' })
       .eq('factcheck_status', 'aprobado')
     if (tag && TAGS_VALIDOS.includes(tag)) q2 = q2.eq('tag', tag)
+    if (zona && ZONAS_VALIDAS.includes(zona)) q2 = q2.eq('zona', zona)
     if (lang && (lang === 'es' || lang === 'en')) q2 = q2.eq('idioma', lang)
     if (q) {
       // Strip PostgREST delimiter characters and SQL LIKE wildcards (% matches everything, _ matches any char).

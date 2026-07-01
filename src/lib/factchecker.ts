@@ -6,8 +6,12 @@
 export type FactCheckResult = {
   status: 'aprobado' | 'rechazado' | 'dudoso'
   tag: string | null
+  zona: string | null
   razon: string
   confianza: number
+  cifra_muertos: number | null
+  cifra_heridos: number | null
+  cifra_desaparecidos: number | null
 }
 
 const SYSTEM_PROMPT = `Eres un verificador de noticias especializado en el doble sismo que ocurrió en Venezuela el 24 de junio de 2026.
@@ -15,7 +19,7 @@ const SYSTEM_PROMPT = `Eres un verificador de noticias especializado en el doble
 CONTEXTO DEL EVENTO:
 - Dos sismos: magnitud 7.2 y 7.5 con epicentro cerca de Morón/San Felipe, estado Yaracuy/Carabobo
 - Ocurrieron con 40 segundos de diferencia (doblete sísmico)
-- Zonas más afectadas: La Guaira, Caracas, Carabobo, Miranda, Trujillo
+- Zonas con mayor daño reportado: La Guaira, Caracas, Carabobo, Miranda, Trujillo — pero el sismo se sintió en todo el país y generó noticias relevantes en otros estados también. NO rechaces ni marques como dudosa una noticia solo por tratarse de un estado distinto a estos cinco.
 - Cifras actuales: ~920 muertos, ~3,360 heridos, +50,000 desaparecidos
 - Estado de emergencia declarado por el gobierno venezolano
 
@@ -38,6 +42,12 @@ Analiza el titular y descripción de la noticia y determina:
    - donaciones: cómo donar, canales de donación monetaria
    - internacional: respuesta internacional, países que ayudan, diplomacia
 
+3. Extrae la zona geográfica de Venezuela mencionada como principal afectada. Usa EXACTAMENTE uno de estos valores (o null si no aplica):
+   amazonas, anzoategui, apure, aragua, barinas, bolivar, carabobo, cojedes, delta_amacuro, distrito_capital, falcon, guarico, lara, merida, miranda, monagas, nueva_esparta, portuguesa, sucre, tachira, trujillo, vargas, yaracuy, zulia, la_guaira
+   Prioriza: yaracuy, carabobo, la_guaira, miranda, distrito_capital, trujillo.
+
+4. Si la noticia menciona explícitamente una cifra ACTUALIZADA de muertos, heridos o desaparecidos a NIVEL PAÍS (el balance nacional total, atribuido a fuente oficial o confiable — ej. "el gobierno reportó 1.930 muertos a nivel nacional", "Protección Civil eleva a 3.500 los heridos en todo el país"), extrae el número exacto. Si la cifra es de un solo estado, municipio o localidad (ej. "el alcalde de Chacao reportó 58 fallecidos"), NO la uses — no representa el total nacional, deja el campo en null. Si la noticia NO menciona una cifra nueva a nivel país, o solo repite las cifras generales del contexto sin actualizarlas, deja el campo en null. No inventes ni redondees — usa el número tal como aparece.
+
 CRITERIOS DE RECHAZO:
 - Noticia de otro país o evento no relacionado
 - Cifras de muertos sin fuente oficial o muy alejadas del rango conocido
@@ -51,8 +61,12 @@ Responde SOLO con JSON, sin texto adicional:
 {
   "status": "aprobado" | "rechazado" | "dudoso",
   "tag": "sismo" | "rescate" | "desaparecidos" | "puntos_acopio" | "ayuda_humanitaria" | "replicas" | "donaciones" | "internacional" | null,
+  "zona": "amazonas" | "anzoategui" | "apure" | "aragua" | "barinas" | "bolivar" | "carabobo" | "cojedes" | "delta_amacuro" | "distrito_capital" | "falcon" | "guarico" | "lara" | "merida" | "miranda" | "monagas" | "nueva_esparta" | "portuguesa" | "sucre" | "tachira" | "trujillo" | "vargas" | "yaracuy" | "zulia" | "la_guaira" | null,
   "razon": "explicación breve en español (máx 100 chars)",
-  "confianza": 0-100
+  "confianza": 0-100,
+  "cifra_muertos": number | null,
+  "cifra_heridos": number | null,
+  "cifra_desaparecidos": number | null
 }`
 
 export async function verificarNoticia(
@@ -94,8 +108,12 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
     return {
       status: parsed.status ?? 'dudoso',
       tag: parsed.tag ?? null,
+      zona: parsed.zona ?? null,
       razon: parsed.razon ?? 'Sin razón',
       confianza: parsed.confianza ?? 50,
+      cifra_muertos: typeof parsed.cifra_muertos === 'number' ? parsed.cifra_muertos : null,
+      cifra_heridos: typeof parsed.cifra_heridos === 'number' ? parsed.cifra_heridos : null,
+      cifra_desaparecidos: typeof parsed.cifra_desaparecidos === 'number' ? parsed.cifra_desaparecidos : null,
     }
   } catch (err) {
     console.error('[factchecker] Error:', err)
@@ -103,8 +121,12 @@ DESCRIPCIÓN: ${descripcion?.slice(0, 500) ?? '(sin descripción)'}`,
     return {
       status: 'dudoso',
       tag: null,
+      zona: null,
       razon: 'Error en verificación automática',
       confianza: 0,
+      cifra_muertos: null,
+      cifra_heridos: null,
+      cifra_desaparecidos: null,
     }
   }
 }

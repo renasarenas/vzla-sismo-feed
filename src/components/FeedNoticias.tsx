@@ -13,14 +13,44 @@ type Noticia = {
   fuente: string
   fuente_tipo: 'rss' | 'x_twitter' | 'oficial'
   tag: string
+  zona: string | null
   idioma: 'es' | 'en'
   publicado_at: string
   factcheck_confianza: number
   factcheck_status: string
   imagen_url: string | null
+  tsunami?: boolean
   isNew?: boolean
   insertedAt?: number
 }
+
+const ZONAS: { value: string; label: string }[] = [
+  { value: 'todos', label: 'Toda Venezuela' },
+  { value: 'la_guaira', label: 'La Guaira' },
+  { value: 'caracas', label: 'Caracas' },
+  { value: 'miranda', label: 'Miranda' },
+  { value: 'carabobo', label: 'Carabobo' },
+  { value: 'yaracuy', label: 'Yaracuy' },
+  { value: 'trujillo', label: 'Trujillo' },
+  { value: 'aragua', label: 'Aragua' },
+  { value: 'falcon', label: 'Falcón' },
+  { value: 'lara', label: 'Lara' },
+  { value: 'zulia', label: 'Zulia' },
+  { value: 'merida', label: 'Mérida' },
+  { value: 'tachira', label: 'Táchira' },
+  { value: 'barinas', label: 'Barinas' },
+  { value: 'portuguesa', label: 'Portuguesa' },
+  { value: 'guarico', label: 'Guárico' },
+  { value: 'anzoategui', label: 'Anzoátegui' },
+  { value: 'sucre', label: 'Sucre' },
+  { value: 'monagas', label: 'Monagas' },
+  { value: 'nueva_esparta', label: 'Nueva Esparta' },
+  { value: 'apure', label: 'Apure' },
+  { value: 'bolivar', label: 'Bolívar' },
+  { value: 'amazonas', label: 'Amazonas' },
+  { value: 'delta_amacuro', label: 'Delta Amacuro' },
+  { value: 'cojedes', label: 'Cojedes' },
+]
 
 // Color text + left border per category. No pill backgrounds.
 const TAG_META: Record<string, { label: string; border: string; text: string; short: string }> = {
@@ -37,14 +67,19 @@ const TAG_META: Record<string, { label: string; border: string; text: string; sh
 
 const LIMIT = 30
 
-const RESUMEN_DATOS = [
-  { num: 'M7.2 + M7.5',        label: 'Doblete sísmico',   red: false },
-  { num: '40 seg',              label: 'Entre sismos',      red: false },
-  { num: 'Yaracuy / Carabobo', label: 'Epicentro',         red: false },
-  { num: '~920',               label: 'Muertos (aprox.)',  red: true  },
-  { num: '~3.360',             label: 'Heridos',           red: true  },
-  { num: '+50.000',            label: 'Desaparecidos',     red: true  },
-]
+// Forma de `cifras` en la respuesta de /api/stats: por cada tipo de víctima,
+// la cifra no-nula más reciente entre las noticias aprobadas, con su fecha y fuente.
+type CifrasStats = {
+  muertos: number | null
+  muertos_at: string | null
+  muertos_fuente: string | null
+  heridos: number | null
+  heridos_at: string | null
+  heridos_fuente: string | null
+  desaparecidos: number | null
+  desaparecidos_at: string | null
+  desaparecidos_fuente: string | null
+}
 
 function tiempoRelativo(iso: string) {
   const date = new Date(iso)
@@ -80,6 +115,16 @@ function BellIcon() {
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M6 8a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2 7H4c.5-.5 2-2.5 2-7" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  )
+}
+
+function TsunamiIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12h20" />
+      <path d="M2 16c4.5-2 4.5-6 9-6s4.5 4 9 6" />
+      <path d="M2 8c4.5 2 4.5 6 9 6s4.5-4 9-6" />
     </svg>
   )
 }
@@ -207,8 +252,30 @@ function EmptyState({ error, degraded }: { error?: boolean; degraded?: boolean }
   )
 }
 
-function ResumenEvento() {
+function ResumenEvento({ cifras }: { cifras: CifrasStats | null }) {
   const [open, setOpen] = useState(true)
+
+  // Los tres campos de víctimas vienen de /api/stats: la cifra no-nula más
+  // reciente extraída por el fact-checker entre las noticias aprobadas. Magnitud,
+  // segundos y epicentro son hechos fijos del evento (no cambian) y quedan estáticos.
+  const datos = [
+    { num: 'M7.2 + M7.5', label: 'Doblete sísmico', red: false },
+    { num: '40 seg', label: 'Entre sismos', red: false },
+    { num: 'Yaracuy / Carabobo', label: 'Epicentro', red: false },
+    { num: cifras?.muertos != null ? `~${cifras.muertos.toLocaleString('es-VE')}` : '~920', label: 'Muertos (aprox.)', red: true },
+    { num: cifras?.heridos != null ? `~${cifras.heridos.toLocaleString('es-VE')}` : '~3.360', label: 'Heridos', red: true },
+    { num: cifras?.desaparecidos != null ? `+${cifras.desaparecidos.toLocaleString('es-VE')}` : '+50.000', label: 'Desaparecidos', red: true },
+  ]
+
+  // Cada cifra es el máximo reportado — puede venir de noticias distintas, así
+  // que mostramos la fecha del reporte más antiguo entre las tres (el "peor caso"
+  // de desactualización), no la más nueva, para no dar una falsa sensación de novedad.
+  const fechas = [cifras?.muertos_at, cifras?.heridos_at, cifras?.desaparecidos_at].filter(Boolean) as string[]
+  const masVieja = fechas.length ? fechas.sort()[0] : null
+  const footer = masVieja
+    ? `Cifras máximas extraídas automáticamente de noticias verificadas · reportadas ${tiempoRelativo(masVieja)}`
+    : 'Cifras provisionales · 28 jun 2026 · Fuente: medios verificados'
+
   return (
     <div className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark p-4 mb-4">
       <button
@@ -221,14 +288,14 @@ function ResumenEvento() {
       {open && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-center">
           <div className="lg:col-span-8 grid grid-cols-2 gap-x-6 gap-y-4">
-            {RESUMEN_DATOS.map(({ num, label, red }) => (
+            {datos.map(({ num, label, red }) => (
               <div key={label} className="border-l-2 border-rule dark:border-rule-dark pl-4 py-1">
                 <p className={`font-mono text-xl sm:text-2xl font-bold ${red ? 'text-crisis-red' : 'text-ink dark:text-ink-dark'}`}>{num}</p>
                 <p className="font-mono text-[9px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark mt-0.5">{label}</p>
               </div>
             ))}
             <p className="col-span-2 font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark mt-2">
-              Cifras provisionales · 28 jun 2026 · Fuente: medios verificados
+              {footer}
             </p>
           </div>
           <div className="lg:col-span-4 w-full max-w-[375px] mx-auto">
@@ -248,6 +315,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
 
   const [noticias, setNoticias] = useState<Noticia[]>(initialData ?? [])
   const [tagActivo, setTagActivo] = useState('todos')
+  const [zonaActiva, setZonaActiva] = useState('todos')
   const [idiomaActivo, setIdiomaActivo] = useState<'todos' | 'es' | 'en'>('todos')
   const [query, setQuery] = useState('')
   const [queryInput, setQueryInput] = useState('')
@@ -260,6 +328,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
   const [total, setTotal] = useState<number | null>(null)
   const [nuevasCount, setNuevasCount] = useState(0)
   const [statsLabel, setStatsLabel] = useState<string>('')
+  const [cifras, setCifras] = useState<CifrasStats | null>(null)
 
   // Feature 1: copy feedback per card
   const [copiadoId, setCopiadoId] = useState<string | null>(null)
@@ -302,6 +371,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
         const d = await res.json()
         const ultima = d.ultima_at ? tiempoRelativo(d.ultima_at) : '—'
         setStatsLabel(`${d.total_aprobadas} noticias · última ${ultima}`)
+        setCifras(d.cifras ?? null)
       } catch { /* ignore */ }
     }
     load()
@@ -309,9 +379,10 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     return () => clearInterval(id)
   }, [])
 
-  const buildUrl = useCallback((tag: string, q: string, off: number, idioma: 'todos' | 'es' | 'en') => {
+  const buildUrl = useCallback((tag: string, zona: string, q: string, off: number, idioma: 'todos' | 'es' | 'en') => {
     const p = new URLSearchParams({ limit: String(LIMIT), offset: String(off) })
     if (tag !== 'todos') p.set('tag', tag)
+    if (zona !== 'todos') p.set('zona', zona)
     if (q) p.set('q', q)
     if (idioma !== 'todos') p.set('lang', idioma)
     return `/api/feed?${p}`
@@ -322,7 +393,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     setError(null)
     setDegraded(false)
     try {
-      const res = await fetch(buildUrl(tag, q, 0, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tag, zonaActiva, q, 0, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) throw new Error(`${res.status}`)
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -339,13 +410,13 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       setCargando(false)
       setNuevasCount(0)
     }
-  }, [buildUrl, idiomaActivo])
+  }, [buildUrl, idiomaActivo, zonaActiva])
 
   const cargarMas = useCallback(async () => {
     if (cargandoMas || !hasMore) return
     setCargandoMas(true)
     try {
-      const res = await fetch(buildUrl(tagActivo, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
+      const res = await fetch(buildUrl(tagActivo, zonaActiva, query, offset, idiomaActivo), { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) return
       const data = await res.json()
       const items: Noticia[] = data.noticias ?? []
@@ -359,9 +430,9 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
     } catch { /* ignore */ } finally {
       setCargandoMas(false)
     }
-  }, [buildUrl, tagActivo, query, offset, idiomaActivo, cargandoMas, hasMore])
+  }, [buildUrl, tagActivo, query, offset, idiomaActivo, zonaActiva, cargandoMas, hasMore])
 
-  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, cargar])
+  useEffect(() => { cargar(tagActivo, query) }, [tagActivo, query, idiomaActivo, zonaActiva, cargar])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -531,6 +602,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
               </button>
             ))}
           </div>
+          {/* Filtro de zona */}
+          <div className="shrink-0 pb-2">
+            <label htmlFor="zona" className="sr-only">Zona geográfica</label>
+            <select
+              id="zona"
+              value={zonaActiva}
+              onChange={e => setZonaActiva(e.target.value)}
+              className="font-mono text-[11px] uppercase tracking-widest bg-transparent text-ink dark:text-ink-dark border-b-2 border-rule dark:border-rule-dark pb-0.5 pr-6 focus:border-crisis-red focus:outline-none cursor-pointer"
+            >
+              {ZONAS.map(z => (
+                <option key={z.value} value={z.value}>{z.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
         {/* Row 2: buscador */}
         <div className="relative">
@@ -550,7 +635,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
       {/* Contenido principal */}
       <div className="px-4 sm:px-6 py-6">
         {/* Feature 2: widget resumen del evento */}
-        <ResumenEvento />
+        <ResumenEvento cifras={cifras} />
 
         {query && total !== null && (
           <p className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-widest uppercase mb-4 tnum">
@@ -620,12 +705,17 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                       ${isNuevo(n) ? 'ring-1 ring-inset ring-[#CF1020]/30' : ''}
                     `}
                   >
-                    {/* Primera línea: tag · fuente · tiempo */}
+                    {/* Primera línea: tag · tsunami · fuente · tiempo */}
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className={`font-mono text-[10px] uppercase tracking-widest shrink-0 ${meta?.text ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
                         {meta?.short ?? n.tag}
                       </span>
-                      <span className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum truncate text-right">
+                      {n.tsunami && (
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-crisis-red flex items-center gap-1" title="Alerta de tsunami">
+                          <TsunamiIcon /> Tsunami
+                        </span>
+                      )}
+                      <span className="font-mono text-[10px] text-ink-muted dark:text-ink-muted-dark tracking-wide tnum truncate text-right ml-auto">
                         {fuenteLabel(n.fuente_tipo, n.fuente)} · {tiempoRelativo(n.publicado_at)}
                       </span>
                     </div>
