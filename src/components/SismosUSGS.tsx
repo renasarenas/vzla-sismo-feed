@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { SismoTrace } from './CardImage'
 
 type Earthquake = {
   id: string
@@ -73,10 +74,9 @@ export function SismosUSGS() {
       </header>
 
       {cargando ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
-          ))}
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <SismoTrace animated className="w-40 h-12 text-crisis-red/50 dark:text-crisis-red/60" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">Consultando USGS…</p>
         </div>
       ) : error ? (
         <div className="text-center py-16 text-red-600 dark:text-red-400">

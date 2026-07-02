@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { SismoTrace } from './CardImage'
 
 // ArcGIS webscene hosted on arcgis.com. We embed the public viewer via iframe
 // rather than pulling in @arcgis/core — the SDK is hundreds of KB and we only
@@ -30,12 +31,12 @@ export function MapaEdificios3DView() {
               <div className="h-5 w-24 skeleton rounded-sm" />
             </div>
             <div className="flex-1 flex flex-col justify-center items-center gap-4">
-              <div className="h-8 w-8 border-2 border-crisis-red border-t-transparent rounded-full animate-spin" />
-              <p className="text-small font-semibold text-ink-muted dark:text-ink-muted-dark animate-pulse">
+              <SismoTrace animated className="w-40 h-12 text-crisis-red/50 dark:text-crisis-red/60" />
+              <p className="text-small font-semibold text-ink-muted dark:text-ink-muted-dark">
                 Inicializando motor cartográfico 3D...
               </p>
             </div>
-            <div className="h-8 w-full skeleton rounded-sm animate-pulse" />
+            <div className="h-8 w-full skeleton rounded-sm" />
           </div>
         )}
 

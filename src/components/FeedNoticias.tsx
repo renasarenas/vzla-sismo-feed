@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState, useCallback, useRef, useMemo, type Dispatch, type SetStateAction } from 'react'
 import { createPortal } from 'react-dom'
-import NextImage from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MapaVenezuelaSVG } from './MapaVenezuelaSVG'
 import GaleriaHero, { type NoticiaGaleria } from './GaleriaHero'
+import CardImage, { SismoPlaceholder, SismoTrace } from './CardImage'
 
 type Noticia = {
   id: string
@@ -150,7 +150,7 @@ function CuratedSection({
         <a href={destacada.url} target="_blank" rel="noopener noreferrer" className="lg:col-span-5 group block">
           {destacada.imagen_url && (
             <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel dark:bg-panel-dark mb-3">
-              <NextImage src={destacada.imagen_url} alt={destacada.titulo} fill unoptimized referrerPolicy="no-referrer" className="object-cover" />
+              <CardImage src={destacada.imagen_url} alt={destacada.titulo} />
             </div>
           )}
           <TagPill tag={destacada.tag} />
@@ -164,7 +164,7 @@ function CuratedSection({
               <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer" className="group flex gap-3.5 py-3 border-b border-rule dark:border-rule-dark last:border-0 last:pb-0">
                 {n.imagen_url && (
                   <div className="relative w-24 sm:w-28 aspect-[4/3] shrink-0 overflow-hidden bg-panel dark:bg-panel-dark rounded-sm">
-                    <NextImage src={n.imagen_url} alt={n.titulo} fill unoptimized referrerPolicy="no-referrer" className="object-cover" />
+                    <CardImage src={n.imagen_url} alt={n.titulo} />
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
@@ -782,7 +782,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             <a href={heroPrincipal.url} target="_blank" rel="noopener noreferrer" className="lg:col-span-6 group block">
               {heroPrincipal.imagen_url && (
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-panel dark:bg-panel-dark mb-3.5">
-                  <NextImage src={heroPrincipal.imagen_url} alt={heroPrincipal.titulo} fill unoptimized priority referrerPolicy="no-referrer" className="object-cover" />
+                  <CardImage src={heroPrincipal.imagen_url} alt={heroPrincipal.titulo} priority />
                 </div>
               )}
               <TagPill tag={heroPrincipal.tag} />
@@ -803,7 +803,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                   <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer" className="group block">
                     {n.imagen_url && (
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel dark:bg-panel-dark mb-2.5 rounded-sm">
-                        <NextImage src={n.imagen_url} alt={n.titulo} fill unoptimized referrerPolicy="no-referrer" className="object-cover" />
+                        <CardImage src={n.imagen_url} alt={n.titulo} />
                       </div>
                     )}
                     <TagPill tag={n.tag} />
@@ -978,7 +978,11 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark rounded-sm overflow-hidden">
                 {/* Image block on top mirrors the hero card (~82% carry an image). */}
-                <div className="aspect-[16/10] w-full skeleton" />
+                <div className="relative aspect-[16/10] w-full skeleton">
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
+                    <SismoTrace animated className="w-28 h-10 text-crisis-red/40 dark:text-crisis-red/50" />
+                  </div>
+                </div>
                 <div className="px-4 pt-2.5 pb-4">
                   <div className="h-2.5 w-28 rounded skeleton mb-3" />
                   <div className="h-3 w-full rounded skeleton mb-1.5" />
@@ -1015,34 +1019,20 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                     {/* Header gráfico: foto o sismógrafo en placeholder */}
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-panel/40 dark:bg-panel-dark/20 border-b border-rule/30 dark:border-rule-dark/20">
                       {hasImage ? (
-                        <NextImage
+                        <CardImage
                           src={n.imagen_url as string}
                           alt={n.titulo}
-                          fill
-                          unoptimized
                           priority={i === 0}
-                          referrerPolicy="no-referrer"
                           sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
                           onError={() => setFailedImg(prev => {
                             const s = new Set(prev)
                             s.add(n.id)
                             return s
                           })}
-                          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
+                          imgClassName="group-hover:scale-[1.04] motion-reduce:transform-none"
                         />
                       ) : (
-                        // Trazo de sismógrafo sutil en degradado editorial
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-paper/20 to-paper/60 dark:from-[#1C1C1F]/10 dark:to-[#1C1C1F]/40">
-                          <svg viewBox="0 0 64 24" className="w-20 h-10 text-rule dark:text-rule-dark/30 opacity-70 group-hover:text-crisis-red/20 group-hover:scale-105 transition-all duration-500" fill="none" aria-hidden="true" preserveAspectRatio="none">
-                            <path
-                              d="M0 12 H10 L13 12 L16 4 L19 20 L22 8 L25 16 L28 12 H40 L43 6 L46 18 L49 12 H64"
-                              stroke="currentColor"
-                              strokeWidth="1.2"
-                              strokeLinejoin="round"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </div>
+                        <SismoPlaceholder />
                       )}
                       {/* Tag chip sobre la foto/placeholder */}
                       <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
@@ -1087,7 +1077,7 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
             {/* Sentinel de infinite scroll */}
             <div ref={setSentinel} className="py-8 text-center">
               {cargandoMas && (
-                <div className="inline-block w-4 h-4 border border-rule dark:border-rule-dark border-t-crisis-red rounded-full animate-spin" />
+                <SismoTrace animated className="w-16 h-6 text-crisis-red/60 dark:text-crisis-red/70" />
               )}
               {!hasMore && noticias.length > 0 && (
                 <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark">Fin del feed</p>
