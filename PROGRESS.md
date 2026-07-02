@@ -25,6 +25,7 @@
   - Integrated `CardImage` across the main grid, boletín lead, boletín resto, hero principal, hero secundarias, and [GaleriaHero.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/GaleriaHero.tsx).
   - Replaced the page-level loading state in [loading.tsx](file:///g:/Projects/vzla-sismo-feed/src/app/loading.tsx) and the feed load-more spin loader with `SismoTrace`.
   - Replaced loaders in [MapaEdificios3D.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaEdificios3D.tsx) and [SismosUSGS.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/SismosUSGS.tsx) with `SismoTrace`.
+  - Replaced the map page dynamic loading fallback state in [page.tsx](file:///g:/Projects/vzla-sismo-feed/src/app/mapa/page.tsx) with centered `SismoTrace` animation to match the rest of the application loading patterns.
   - Unified category badges across the entire app by replacing old oval pill badges with the premium squared dot badge component `TagPill` in both [FeedNoticias.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/FeedNoticias.tsx) and [GaleriaHero.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/GaleriaHero.tsx).
 - Verification:
   - Checked build with `npm run build` and TypeScript checks which succeeded cleanly.
