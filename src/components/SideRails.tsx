@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { TAG_MUTED_PILL as TAG_PILL } from '@/lib/tags'
 
 type NoticiaRail = {
   id: string
@@ -9,17 +10,6 @@ type NoticiaRail = {
   url: string
   tag: string
   publicado_at: string
-}
-
-const TAG_PILL: Record<string, { label: string; bg: string; fg: string }> = {
-  sismo:             { label: 'Sismo',            bg: 'bg-[#CF1020]/10', fg: 'text-[#8A0E15]' },
-  rescate:           { label: 'Rescate',          bg: 'bg-[#6B3A52]/10', fg: 'text-[#4A2839]' },
-  desaparecidos:     { label: 'Desaparecidos',    bg: 'bg-[#B5502E]/10', fg: 'text-[#7A3720]' },
-  puntos_acopio:     { label: 'Acopio',           bg: 'bg-[#5C7A4A]/10', fg: 'text-[#3F5433]' },
-  ayuda_humanitaria: { label: 'Ayuda',            bg: 'bg-[#3D5A73]/10', fg: 'text-[#2A3F50]' },
-  replicas:          { label: 'Réplicas',         bg: 'bg-[#A67C2E]/10', fg: 'text-[#755720]' },
-  donaciones:        { label: 'Donar',            bg: 'bg-[#3E7C6E]/10', fg: 'text-[#2B564C]' },
-  internacional:     { label: 'Int.',             bg: 'bg-[#8A8378]/10', fg: 'text-[#5F5A52]' },
 }
 
 function tiempoRelativo(iso: string) {

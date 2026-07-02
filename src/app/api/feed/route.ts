@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
       .select('id, titulo, descripcion, url, fuente, tag, publicado_at, imagen_url')
       .eq('factcheck_status', 'aprobado')
       .not('imagen_url', 'is', null)
+      // '' es el sentinel del backfill de ingest para "se scrapeó, no se encontró imagen";
+      // pasa el filtro not-null y rompería la galería con src vacíos si no se excluye.
+      .neq('imagen_url', '')
       .order('publicado_at', { ascending: false })
       .limit(8)
     if (error) {

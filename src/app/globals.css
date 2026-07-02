@@ -22,11 +22,13 @@
   :root {
     --skeleton-base: #E2E1DC;
     --skeleton-shine: rgba(255, 255, 255, 0.6);
+    --sismo-grid: rgba(23, 23, 26, 0.05);
     color-scheme: light;
   }
   .dark {
     --skeleton-base: #2A2B31;
-    --skeleton-shine: rgba(255, 255, 255, 0.06);
+    --skeleton-shine: rgba(255, 255, 255, 0.14);
+    --sismo-grid: rgba(233, 233, 230, 0.04);
     color-scheme: dark;
   }
 
@@ -81,6 +83,7 @@
     content: '';
     position: absolute;
     inset: 0;
+    z-index: 0;
     transform: translateX(-100%);
     background: linear-gradient(
       90deg,
@@ -90,12 +93,36 @@
     );
     animation: skeleton-shimmer 1.6s ease-in-out infinite;
   }
+
+  /* Seismogram chart paper: fine theme-aware grid behind the no-image
+     placeholder trace. */
+  .sismo-paper {
+    background-image:
+      repeating-linear-gradient(0deg, var(--sismo-grid) 0, var(--sismo-grid) 1px, transparent 1px, transparent 14px),
+      repeating-linear-gradient(90deg, var(--sismo-grid) 0, var(--sismo-grid) 1px, transparent 1px, transparent 14px);
+  }
+
+  /* Image-loading trace: the line draws in from the left and erases behind
+     itself, like a live pen feed. Requires pathLength=1 on the path so the
+     dash length equals the full trace. Base state is the fully-drawn trace:
+     the global prefers-reduced-motion rule collapses the animation to one
+     instant iteration, which lands back on that static visible state. */
+  .sismo-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: sismo-draw 2.2s linear infinite;
+  }
 }
 
 @keyframes skeleton-shimmer {
   100% {
     transform: translateX(100%);
   }
+}
+
+@keyframes sismo-draw {
+  from { stroke-dashoffset: 2; }
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes pcSlideUp {

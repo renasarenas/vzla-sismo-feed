@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { SismoLoading } from './SismoLoading'
 
 type Earthquake = {
   id: string
@@ -73,11 +74,11 @@ export function SismosUSGS() {
       </header>
 
       {cargando ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
-          ))}
-        </div>
+        <SismoLoading
+          caption="Consultando USGS…"
+          className="flex flex-col items-center justify-center py-16 gap-4"
+          captionClassName="font-mono text-[10px] uppercase tracking-widest text-ink-muted dark:text-ink-muted-dark"
+        />
       ) : error ? (
         <div className="text-center py-16 text-red-600 dark:text-red-400">
           <p className="text-small">{error}</p>

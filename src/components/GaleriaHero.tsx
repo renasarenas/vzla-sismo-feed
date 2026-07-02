@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import NextImage from 'next/image'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import CardImage, { SismoTrace, TagPill } from './CardImage'
 
 export interface NoticiaGaleria {
   id: string
@@ -12,7 +12,7 @@ export interface NoticiaGaleria {
   fuente: string
   tag: string | null
   publicado_at: string
-  imagen_url: string  // guaranteed non-null by .not('imagen_url','is',null) + empty-string filter in ingest
+  imagen_url: string | null  // feed query filters NULL and '' (the ingest backfill's "scraped, none found" sentinel); still guarded defensively below
 }
 
 // Presentational only — `noticias` is a slice of the shared FeedNoticias pool
@@ -36,7 +36,11 @@ export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaG
               key={i}
               className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark"
             >
-              <div className="aspect-video w-full skeleton" />
+              <div className="relative aspect-video w-full skeleton">
+                <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
+                  <SismoTrace animated className="w-28 h-10 text-crisis-red/40 dark:text-crisis-red/50" />
+                </div>
+              </div>
               <div className="p-4">
                 {/* Same box model as the real card: fixed width + aspect-video image +
                     a 2-line (min-h-[2.5rem]) title region + one meta line. Identical
@@ -63,7 +67,7 @@ export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaG
               whileHover={{ y: -3 }}
               className="w-[300px] flex-shrink-0 rounded-sm overflow-hidden bg-panel dark:bg-panel-dark border border-rule dark:border-rule-dark hover:bg-ink/[0.01] dark:hover:bg-ink-dark/[0.01] hover:border-crisis-red/30 transition-all duration-200"
             >
-              <GaleriaImagen src={n.imagen_url} alt={n.titulo} tag={n.tag} />
+              {n.imagen_url && <GaleriaImagen src={n.imagen_url} alt={n.titulo} tag={n.tag} />}
               <div className="p-4">
                 {/* min-h reserves 2 title lines so a 1-line title doesn't shorten the
                     card; truncate keeps the meta to a single line. Fixed width above +
@@ -79,49 +83,20 @@ export default function GaleriaHero({ noticias, cargando }: { noticias: NoticiaG
   )
 }
 
-// Gallery thumbnail with its own load lifecycle: a shimmering skeleton holds the
-// aspect-video slot until the image decodes, then the image fades in over it. On
-// error the whole slot is removed (the card keeps just its title/meta), matching
-// the previous behaviour. The mount check catches images already in cache, whose
-// onLoad can fire before React attaches the handler.
+// Gallery thumbnail: CardImage owns the load lifecycle (seismograph loading
+// trace, then crossfade). On error the whole slot is removed (the card keeps
+// just its title/meta), matching the previous behaviour.
 function GaleriaImagen({ src, alt, tag }: { src: string; alt: string; tag: string | null }) {
-  const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
-
-  useEffect(() => {
-    if (imgRef.current?.complete) setLoaded(true)
-  }, [])
 
   if (failed) return null
 
   return (
     <div className="relative aspect-video w-full bg-panel dark:bg-panel-dark">
-      {!loaded && <div className="absolute inset-0 skeleton" />}
-      <NextImage
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        fill
-        unoptimized
-        referrerPolicy="no-referrer"
-        onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
-        className={`object-cover transition-opacity duration-500 ease-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
-      />
+      <CardImage src={src} alt={alt} onError={() => setFailed(true)} />
       {tag && (
-        <span className="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
-          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-            tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
-            tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
-            tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
-            tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
-            tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
-            tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
-            tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
-            'bg-ink-muted'
-          }`} />
-          {tag.replace(/_/g, ' ')}
+        <span className="absolute top-2 left-2">
+          <TagPill tag={tag} />
         </span>
       )}
     </div>

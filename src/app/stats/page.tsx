@@ -1,28 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SismoLoading } from '@/components/SismoLoading'
+import { TAG_COLORS, TAG_LABELS } from '@/lib/tags'
 
-const TAG_COLORS: Record<string, string> = {
-  sismo: '#CF1020',
-  rescate: '#F97316',
-  desaparecidos: '#A855F7',
-  puntos_acopio: '#22C55E',
-  ayuda_humanitaria: '#3B82F6',
-  replicas: '#EAB308',
-  donaciones: '#14B8A6',
-  internacional: '#94A3B8',
-}
-
-const TAG_META: Record<string, { label: string }> = {
-  sismo:             { label: 'Sismo' },
-  rescate:           { label: 'Rescate' },
-  desaparecidos:     { label: 'Desaparecidos' },
-  puntos_acopio:     { label: 'Puntos de acopio' },
-  ayuda_humanitaria: { label: 'Ayuda humanitaria' },
-  replicas:          { label: 'Réplicas' },
-  donaciones:        { label: 'Donaciones' },
-  internacional:     { label: 'Internacional' },
-}
+// Local view of the shared tag labels, shaped as { label } to keep the rest of
+// this file (which destructures `{ label }` in a couple of spots) unchanged.
+const TAG_META: Record<string, { label: string }> = Object.fromEntries(
+  Object.entries(TAG_LABELS)
+    .filter(([tag]) => tag !== 'todos')
+    .map(([tag, label]) => [tag, { label }])
+)
 
 type Stats = {
   total_aprobadas: number
@@ -127,6 +115,16 @@ export default function StatsPage() {
   const ultimaAt = stats?.ultima_at ?? null
   const maxTag = Math.max(...Object.values(porTag), 1)
   const tagEntries = Object.entries(TAG_META)
+
+  if (stats === null) {
+    return (
+      <SismoLoading
+        caption="Cargando indicadores…"
+        className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-32 flex flex-col items-center justify-center gap-4"
+        captionClassName="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark animate-pulse"
+      />
+    )
+  }
 
   return (
     <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-16">
