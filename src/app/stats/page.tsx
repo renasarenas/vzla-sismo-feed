@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SismoTrace } from '@/components/CardImage'
 
 const TAG_COLORS: Record<string, string> = {
   sismo: '#CF1020',
@@ -127,6 +128,18 @@ export default function StatsPage() {
   const ultimaAt = stats?.ultima_at ?? null
   const maxTag = Math.max(...Object.values(porTag), 1)
   const tagEntries = Object.entries(TAG_META)
+
+  if (stats === null) {
+    return (
+      <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-32 flex flex-col items-center justify-center gap-4">
+        <SismoTrace animated className="w-40 h-12 text-crisis-red/50 dark:text-crisis-red/60" />
+        <p className="text-eyebrow uppercase text-ink-muted dark:text-ink-muted-dark animate-pulse animate-duration-1000">
+          Cargando indicadores…
+        </p>
+      </main>
+    )
+  }
+
 
   return (
     <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-16">

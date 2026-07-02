@@ -27,6 +27,7 @@
   - Replaced loaders in [MapaEdificios3D.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaEdificios3D.tsx) and [SismosUSGS.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/SismosUSGS.tsx) with `SismoTrace`.
   - Replaced the map page dynamic loading fallback state in [page.tsx](file:///g:/Projects/vzla-sismo-feed/src/app/mapa/page.tsx) with centered `SismoTrace` animation to match the rest of the application loading patterns.
   - Unified category badges across the entire app by replacing old oval pill badges with the premium squared dot badge component `TagPill` in both [FeedNoticias.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/FeedNoticias.tsx) and [GaleriaHero.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/GaleriaHero.tsx).
+  - Added a centered `SismoTrace` loading fallback to the statistics page [page.tsx](file:///g:/Projects/vzla-sismo-feed/src/app/stats/page.tsx) to prevent showing empty/0 values during the initial client-side API fetch.
 - Verification:
   - Checked build with `npm run build` and TypeScript checks which succeeded cleanly.
 - Commits:
