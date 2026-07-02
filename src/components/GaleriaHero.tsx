@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import CardImage, { SismoTrace } from './CardImage'
+import CardImage, { SismoTrace, TagPill } from './CardImage'
 
 export interface NoticiaGaleria {
   id: string
@@ -95,18 +95,8 @@ function GaleriaImagen({ src, alt, tag }: { src: string; alt: string; tag: strin
     <div className="relative aspect-video w-full bg-panel dark:bg-panel-dark">
       <CardImage src={src} alt={alt} onError={() => setFailed(true)} />
       {tag && (
-        <span className="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
-          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-            tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
-            tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
-            tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
-            tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
-            tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
-            tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
-            tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
-            'bg-ink-muted'
-          }`} />
-          {tag.replace(/_/g, ' ')}
+        <span className="absolute top-2 left-2">
+          <TagPill tag={tag} />
         </span>
       )}
     </div>

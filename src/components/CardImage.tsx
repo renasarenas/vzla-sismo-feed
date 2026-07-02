@@ -96,3 +96,40 @@ export default function CardImage({ src, alt, priority = false, sizes, imgClassN
     </>
   )
 }
+
+export function getDotColorClass(tag: string): string {
+  switch (tag) {
+    case 'sismo':             return 'bg-[#CF1020] dark:bg-[#EF4444]'
+    case 'rescate':           return 'bg-[#F97316] dark:bg-[#FB923C]'
+    case 'desaparecidos':     return 'bg-[#A855F7] dark:bg-[#C084FC]'
+    case 'puntos_acopio':     return 'bg-[#22C55E] dark:bg-[#4ADE80]'
+    case 'ayuda_humanitaria': return 'bg-[#3B82F6] dark:bg-[#60A5FA]'
+    case 'replicas':          return 'bg-[#EAB308] dark:bg-[#FACC15]'
+    case 'donaciones':        return 'bg-[#14B8A6] dark:bg-[#2DD4BF]'
+    case 'internacional':     return 'bg-[#94A3B8] dark:bg-[#CBD5E1]'
+    default:                  return 'bg-ink-muted'
+  }
+}
+
+const TAG_SHORT_NAMES: Record<string, string> = {
+  todos: 'Todas',
+  sismo: 'Sismo',
+  rescate: 'Rescate',
+  desaparecidos: 'Desap.',
+  puntos_acopio: 'Acopio',
+  ayuda_humanitaria: 'Ayuda',
+  replicas: 'Réplicas',
+  donaciones: 'Donar',
+  internacional: 'Int.',
+}
+
+export function TagPill({ tag }: { tag: string }) {
+  const shortName = TAG_SHORT_NAMES[tag] ?? tag
+  const dotColor = getDotColorClass(tag)
+  return (
+    <span className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm shrink-0">
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+      {shortName.replace(/_/g, ' ')}
+    </span>
+  )
+}

@@ -17,18 +17,20 @@
 
 ### Session 012 — 2026-07-02
 - Date: 2026-07-02
-- Goal: Implement dynamic seismograph loading animation (SismoTrace) and seismograph paper background (SismoPlaceholder) for cards and page loading states. Replace all spinners and generic loaders with SismoTrace.
+- Goal: Implement dynamic seismograph loading animation (SismoTrace), seismograph paper background (SismoPlaceholder) for loading states, and unify badge styling across the application to only use the squared indicator dot style (TagPill).
 - Completed:
-  - Created [CardImage.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/CardImage.tsx) containing `CardImage` component and `SismoPlaceholder` using the seismograph paper pattern.
+  - Created [CardImage.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/CardImage.tsx) containing `CardImage` component, `SismoPlaceholder` using the seismograph paper pattern, and the unified `TagPill` component with its category dot styling.
   - Implemented `SismoTrace` animated loader with relative layers and z-index ordering to prevent parent skeleton `overflow: hidden` clipping.
   - Cleaned up unused `NextImage` imports in [FeedNoticias.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/FeedNoticias.tsx).
   - Integrated `CardImage` across the main grid, boletín lead, boletín resto, hero principal, hero secundarias, and [GaleriaHero.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/GaleriaHero.tsx).
   - Replaced the page-level loading state in [loading.tsx](file:///g:/Projects/vzla-sismo-feed/src/app/loading.tsx) and the feed load-more spin loader with `SismoTrace`.
   - Replaced loaders in [MapaEdificios3D.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/MapaEdificios3D.tsx) and [SismosUSGS.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/SismosUSGS.tsx) with `SismoTrace`.
+  - Unified category badges across the entire app by replacing old oval pill badges with the premium squared dot badge component `TagPill` in both [FeedNoticias.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/FeedNoticias.tsx) and [GaleriaHero.tsx](file:///g:/Projects/vzla-sismo-feed/src/components/GaleriaHero.tsx).
 - Verification:
-  - Checked build with `npm run build` which succeeded cleanly.
+  - Checked build with `npm run build` and TypeScript checks which succeeded cleanly.
 - Commits:
   - `feat(ui): unify loading animations using animated seismograph trace SismoTrace`
+  - `feat(ui): unify tag badges across the app to use squared dot style TagPill`
 
 ### Session 011 — 2026-07-01
 - Date: 2026-07-01

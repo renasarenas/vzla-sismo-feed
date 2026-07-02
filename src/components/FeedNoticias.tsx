@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MapaVenezuelaSVG } from './MapaVenezuelaSVG'
 import GaleriaHero, { type NoticiaGaleria } from './GaleriaHero'
-import CardImage, { SismoPlaceholder, SismoTrace } from './CardImage'
+import CardImage, { SismoPlaceholder, SismoTrace, TagPill } from './CardImage'
 
 type Noticia = {
   id: string
@@ -101,30 +101,6 @@ function fuenteLabel(tipo: string, fuente: string) {
   return fuente
 }
 
-// Oval "pill" badge per category — muted, ink-like hues (bg = 10% tint, fg = a
-// darker/lighter shade of the same hue for light/dark surfaces) so the categories
-// read as one cohesive editorial palette. Same look as the production base.
-const TAG_PILL: Record<string, { bg: string; fg: string }> = {
-  todos:             { bg: 'bg-ink-muted/10', fg: 'text-ink-muted dark:text-ink-muted-dark' },
-  sismo:             { bg: 'bg-[#CF1020]/10', fg: 'text-[#8A0E15] dark:text-[#F09595]' },
-  rescate:           { bg: 'bg-[#6B3A52]/10', fg: 'text-[#4A2839] dark:text-[#D9A8BE]' },
-  desaparecidos:     { bg: 'bg-[#B5502E]/10', fg: 'text-[#7A3720] dark:text-[#E3A98D]' },
-  puntos_acopio:     { bg: 'bg-[#5C7A4A]/10', fg: 'text-[#3F5433] dark:text-[#B8CBA8]' },
-  ayuda_humanitaria: { bg: 'bg-[#3D5A73]/10', fg: 'text-[#2A3F50] dark:text-[#A9C1D2]' },
-  replicas:          { bg: 'bg-[#A67C2E]/10', fg: 'text-[#755720] dark:text-[#E0C48C]' },
-  donaciones:        { bg: 'bg-[#3E7C6E]/10', fg: 'text-[#2B564C] dark:text-[#A6D2C5]' },
-  internacional:     { bg: 'bg-[#8A8378]/10', fg: 'text-[#5F5A52] dark:text-[#D9D4C9]' },
-}
-
-function TagPill({ tag }: { tag: string }) {
-  const pill = TAG_PILL[tag]
-  const meta = TAG_META[tag]
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide shrink-0 ${pill?.bg ?? 'bg-ink-muted/10'} ${pill?.fg ?? 'text-ink-muted dark:text-ink-muted-dark'}`}>
-      {meta?.short ?? tag}
-    </span>
-  )
-}
 
 // A curated category block, sized by importance: a lead story with a medium
 // image, then a column of secondary stories with small thumbnails. "Ver todas"
@@ -1035,18 +1011,8 @@ export function FeedNoticias({ initialData }: { initialData?: Noticia[] }) {
                         <SismoPlaceholder />
                       )}
                       {/* Tag chip sobre la foto/placeholder */}
-                      <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong text-ink dark:text-ink-dark rounded-sm shadow-sm backdrop-blur-sm">
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          n.tag === 'sismo' ? 'bg-[#CF1020] dark:bg-[#EF4444]' :
-                          n.tag === 'rescate' ? 'bg-[#F97316] dark:bg-[#FB923C]' :
-                          n.tag === 'desaparecidos' ? 'bg-[#A855F7] dark:bg-[#C084FC]' :
-                          n.tag === 'puntos_acopio' ? 'bg-[#22C55E] dark:bg-[#4ADE80]' :
-                          n.tag === 'ayuda_humanitaria' ? 'bg-[#3B82F6] dark:bg-[#60A5FA]' :
-                          n.tag === 'replicas' ? 'bg-[#EAB308] dark:bg-[#FACC15]' :
-                          n.tag === 'donaciones' ? 'bg-[#14B8A6] dark:bg-[#2DD4BF]' :
-                          'bg-ink-muted'
-                        }`} />
-                        {meta?.short ?? n.tag}
+                      <span className="absolute top-2.5 left-2.5">
+                        <TagPill tag={n.tag} />
                       </span>
                       {n.tsunami && (
                         <span className="absolute top-2.5 right-2.5 font-mono text-[9px] uppercase tracking-widest text-crisis-red dark:text-[#EF4444] flex items-center gap-1 px-2 py-0.5 bg-paper/95 dark:bg-[#1C1C1F]/95 border border-rule dark:border-rule-strong rounded-sm shadow-sm backdrop-blur-sm" title="Alerta de tsunami">
