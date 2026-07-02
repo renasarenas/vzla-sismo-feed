@@ -43,6 +43,25 @@ function extraerImagenRSS(item: Parser.Item): string | null {
   return src?.startsWith('http') ? src : null
 }
 
+const META_IMAGE_RE = /<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/i
+
+async function extraerImagenArticulo(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VzlaSismoFeedBot/1.0)' },
+    })
+    if (!res.ok) return null
+    const html = await res.text()
+    const match = html.match(META_IMAGE_RE)
+    const src = match?.[1] ?? match?.[2] ?? null
+    return src?.startsWith('http') ? src : null
+  } catch {
+    return null
+  }
+}
+
+
 export async function GET(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -118,7 +137,10 @@ export async function GET(req: Request) {
         // Si el modelo no pudo inferir una zona, probamos con el mapeo determinístico
         // de ciudades conocidas antes de guardar null.
         const zona = resultado.zona ?? detectarZonaPorCiudad(`${titulo} ${desc}`)
-        const imagen_url = extraerImagenRSS(item)
+        let imagen_url = extraerImagenRSS(item)
+        if (!imagen_url && url) {
+          imagen_url = await extraerImagenArticulo(url)
+        }
 
         // 4. Guardar en Supabase (todas, incluyendo rechazadas para auditoría)
         const { error: insertError } = await supabase.from('noticias').insert({
@@ -154,6 +176,30 @@ export async function GET(req: Request) {
       console.error(`[ingest] Error procesando ${fuente.nombre}:`, err)
     }
   }
+
+  // Backfill automático de imágenes para noticias históricas (límite 5 por ejecución para no exceder timeout)
+  try {
+    const { data: sinFoto } = await supabase
+      .from('noticias')
+      .select('id, url')
+      .eq('factcheck_status', 'aprobado')
+      .is('imagen_url', null)
+      .limit(5)
+
+    if (sinFoto && sinFoto.length > 0) {
+      for (const n of sinFoto) {
+        const img = await extraerImagenArticulo(n.url)
+        // Guardamos "" (cadena vacía) si no se encontró imagen para evitar procesarlo infinitamente en el query is('imagen_url', null)
+        await supabase
+          .from('noticias')
+          .update({ imagen_url: img ?? '' })
+          .eq('id', n.id)
+      }
+    }
+  } catch (err) {
+    console.error('[ingest] Error en backfill automático:', err)
+  }
+
 
   return Response.json({
     ok: true,
