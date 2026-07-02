@@ -25,7 +25,7 @@ Este proyecto existe para concentrar en un solo lugar las noticias verificadas s
 | Tiempo real | Supabase Realtime (WebSocket, `postgres_changes`) |
 | Fact-checking | Groq API — `llama-3.3-70b-versatile` |
 | Datos sísmicos oficiales | USGS Earthquake Hazards Program (GeoJSON) |
-| Deploy | Vercel (SSR); ingesta disparada por GitHub Actions cada 5 min |
+| Deploy | Vercel (SSR + Cron Jobs cada 5 min) |
 | Tipografía | Newsreader (serif) + Inter (sans) vía `next/font` |
 
 ---
@@ -52,9 +52,7 @@ RSS / USGS GeoJSON
 [Feed]                  ← se actualiza solo, sin recargar
 ```
 
-Un workflow de GitHub Actions (`.github/workflows/ingest-cron.yml`) dispara el
-pipeline cada 5 minutos llamando a `/api/ingest` con el `CRON_SECRET`. No se usa
-Vercel Cron porque el plan Hobby lo limita a una ejecución diaria.
+Un cron en Vercel dispara el pipeline cada 5 minutos.
 
 ---
 

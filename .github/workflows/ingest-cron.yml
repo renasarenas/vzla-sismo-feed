@@ -2,10 +2,7 @@ name: Ingest cron
 
 on:
   schedule:
-    # Cada 5 min. GitHub Actions dispara el pipeline (Vercel Hobby limita los
-    # cron a 1/día, así que NO se usa Vercel Cron). El scheduler es best-effort:
-    # bajo carga de GitHub la corrida puede atrasarse varios minutos o saltarse.
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
