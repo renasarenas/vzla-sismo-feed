@@ -52,15 +52,26 @@ async function extraerImagenArticulo(url: string): Promise<string | null> {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VzlaSismoFeedBot/1.0)' },
     })
     if (!res.ok) return null
+    const ct = res.headers.get('content-type') ?? ''
+    if (!ct.includes('text/html')) return null
     const html = await res.text()
-    const match = html.match(META_IMAGE_RE)
+    // Los meta og:image/twitter:image viven en <head>; nos quedamos con los
+    // primeros 64KB para no regex-scanear bodies de varios MB.
+    const head = html.slice(0, 65536)
+    const match = head.match(META_IMAGE_RE)
     const src = match?.[1] ?? match?.[2] ?? null
-    return src?.startsWith('http') ? src : null
+    if (!src) return null
+    try {
+      const parsed = new URL(src)
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null
+      return src
+    } catch {
+      return null
+    }
   } catch {
     return null
   }
 }
-
 
 export async function GET(req: Request) {
   const supabase = createClient(
@@ -190,16 +201,18 @@ export async function GET(req: Request) {
       for (const n of sinFoto) {
         const img = await extraerImagenArticulo(n.url)
         // Guardamos "" (cadena vacía) si no se encontró imagen para evitar procesarlo infinitamente en el query is('imagen_url', null)
-        await supabase
+        const { error } = await supabase
           .from('noticias')
           .update({ imagen_url: img ?? '' })
           .eq('id', n.id)
+        if (error) {
+          console.error(`[ingest] Error en backfill de imagen para noticia ${n.id}:`, error.message)
+        }
       }
     }
   } catch (err) {
     console.error('[ingest] Error en backfill automático:', err)
   }
-
 
   return Response.json({
     ok: true,
